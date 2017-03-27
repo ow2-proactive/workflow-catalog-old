@@ -192,8 +192,9 @@ public final class ProActiveWorkflowParser {
     }
 
     private void handleGenericInformationElement(ImmutableMap.Builder<String, String> genericInformation) {
-        handleElementWithMultipleValues(genericInformation, ATTRIBUTE_GENERIC_INFORMATION_NAME,
-                ATTRIBUTE_GENERIC_INFORMATION_VALUE);
+        handleElementWithMultipleValues(genericInformation,
+                                        ATTRIBUTE_GENERIC_INFORMATION_NAME,
+                                        ATTRIBUTE_GENERIC_INFORMATION_VALUE);
     }
 
     private void handleJobElement() {
@@ -212,8 +213,8 @@ public final class ProActiveWorkflowParser {
         handleElementWithMultipleValues(variables, ATTRIBUTE_VARIABLE_NAME, ATTRIBUTE_VARIABLE_VALUE);
     }
 
-    private void handleElementWithMultipleValues(ImmutableMap.Builder<String, String> store,
-            String attributeNameForKey, String attributeNameForValue) {
+    private void handleElementWithMultipleValues(ImmutableMap.Builder<String, String> store, String attributeNameForKey,
+            String attributeNameForValue) {
         String[] key = new String[1];
         String[] value = new String[1];
 
