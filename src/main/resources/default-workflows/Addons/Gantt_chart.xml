@@ -5,7 +5,7 @@
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
     name="Gantt_chart" projectName="Scheduler Analytics"
     priority="normal"
-    onTaskError="continueJobExecution">
+    onTaskError="continueJobExecution">
   <variables>
     <variable name="url" value="https://try.activeeon.com" model="PA:URL"/>
     <variable name="palette" value="Oranges" model="PA:LIST(Accent,Blues,BrBG,BuGn,BuPu,Category10,Category20,Category20b,Category20c,Colorblind,Dark2,GnBu,Greens,Greys,Inferno,Magma,OrRd,Oranges,PRGn,Paired,Pastel1,Pastel2,PiYG,Plasma,PuBu,PuBuGn,PuOr,PuRd,Purples,RdBu,RdGy,RdPu,RdYlBu,RdYlGn,Reds,Set1,Set2,Set3,Spectral,Viridis,YlGn,YlGnBu,YlOrBr,YlOrRd)"/>
