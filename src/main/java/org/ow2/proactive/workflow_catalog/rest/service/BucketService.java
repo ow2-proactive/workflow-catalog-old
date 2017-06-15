@@ -75,7 +75,7 @@ public class BucketService {
 
     private static final String DEFAULT_BUCKET_OWNER = "workflow-catalog";
 
-    private static final String DEFAULT_WFS_FOLDER = "/default-workflows";
+    private static final String DEFAULT_WORKFLOWS_FOLDER = "/default-workflows";
 
     @PostConstruct
     public void init() throws Exception {
@@ -84,7 +84,7 @@ public class BucketService {
         // We define the initial start by no existing buckets in the Catalog
         // On initial start, we load the Catalog with predefined Workflows
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
-            populateCatalog(defaultBucketNames, DEFAULT_WFS_FOLDER);
+            populateCatalog(defaultBucketNames, DEFAULT_WORKFLOWS_FOLDER);
         }
     }
 
