@@ -8,7 +8,6 @@
         onTaskError="continueJobExecution"
 >
   <variables>
-    <variable name="executable_file_path_from_dataspace" value="ptfSimulations" />
     <variable name="nbMC" value="10000" />
     <variable name="nbTimeSteps" value="255" />
     <variable name="horizon" value="1" />
@@ -122,7 +121,7 @@ runs=variables.get("nbTasksPerVaR")
         <task ref="Init_VaR"/>
       </depends>
       <inputFiles>
-        <files  includes="$executable_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
+        <files  includes="ptfSimulations" accessMode="transferFromGlobalSpace"/>
         <files  includes="$updated_assets_params_file_name" accessMode="transferFromGlobalSpace"/>
         <files  includes="$assets_correlations_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
       </inputFiles>
@@ -133,7 +132,6 @@ runs=variables.get("nbTasksPerVaR")
 println "simulate_ptf_PnLs ..."
 
 // Retrieve variables
-def executable_file_path_from_dataspace = variables.get("executable_file_path_from_dataspace")
 def VaR_id = variables.get("VaR_id").toInteger()
 def nbMC_per_task = variables.get("nbMC_per_task")
 def nbTimeSteps = variables.get("nbTimeSteps")
@@ -143,11 +141,11 @@ def updated_assets_params_file_name = variables.get("updated_assets_params_file_
 def assets_correlations_file_path_from_dataspace = variables.get("assets_correlations_file_path_from_dataspace")
 
 // Set executable permission
-def executable_file_path = new File(localspace, executable_file_path_from_dataspace).absolutePath
+def executable_file_path = new File(localspace, "ptfSimulations").absolutePath
 ["chmod","+x", executable_file_path].execute().waitForProcessOutput(System.out, System.err)
 
 // Build the command and specify the VaR_id to generate different seeds for each VaR
-def cmd = [executable_file_path, nbMC_per_task, nbTimeSteps, horizon, nbAssets, updated_assets_params_file_name, assets_correlations_file_path_from_dataspace, VaR_id]
+def cmd = ['/bin/sh', '-c', "docker run -v " + new File('.').absolutePath + ":/defaultglobal lballabio/quantlib:1.9-xenial /bin/bash -c 'cd defaultglobal; ./ptfSimulations " + nbMC_per_task + " " + nbTimeSteps + " " + horizon + " " + nbAssets + " " + updated_assets_params_file_name + " " +  assets_correlations_file_path_from_dataspace + " " + VaR_id + "'"]
 println cmd
 
 // Execute the command
@@ -302,7 +300,7 @@ runs=variables.get("nbTasksPerVaR")
         <task ref="Start_MC_VaR"/>
       </depends>
       <inputFiles>
-        <files  includes="$executable_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
+        <files  includes="ptfSimulations" accessMode="transferFromGlobalSpace"/>
         <files  includes="$assets_params_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
         <files  includes="$assets_correlations_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
       </inputFiles>
@@ -313,7 +311,6 @@ runs=variables.get("nbTasksPerVaR")
 println "simulate_ptf_PnLs2 ..."
 
 // Retrieve variables
-def executable_file_path_from_dataspace = variables.get("executable_file_path_from_dataspace")
 def task_id = variables.get("PA_TASK_REPLICATION")
 def nbMC_per_task = variables.get("nbMC_per_task")
 def nbTimeSteps = variables.get("nbTimeSteps")
@@ -323,11 +320,11 @@ def assets_params_file_path_from_dataspace = variables.get("assets_params_file_p
 def assets_correlations_file_path_from_dataspace = variables.get("assets_correlations_file_path_from_dataspace")
 
 // Set executable permission
-def executable_file_path = new File(localspace, executable_file_path_from_dataspace).absolutePath
+def executable_file_path = new File(localspace, "ptfSimulations").absolutePath
 ["chmod","+x", executable_file_path].execute().waitForProcessOutput(System.out, System.err)
 
 // Build the command
-def cmd = [executable_file_path, nbMC_per_task, nbTimeSteps, horizon, nbAssets, assets_params_file_path_from_dataspace, assets_correlations_file_path_from_dataspace, task_id]
+def cmd = ['/bin/sh', '-c', "docker run -v " + new File('.').absolutePath + ":/defaultglobal lballabio/quantlib:1.9-xenial /bin/bash -c 'cd defaultglobal; ./ptfSimulations " + nbMC_per_task + " " + nbTimeSteps + " " + horizon + " " + nbAssets + " " + assets_params_file_path_from_dataspace + " " +  assets_correlations_file_path_from_dataspace + " " + task_id + "'"]
 println cmd
 
 // Execute the command
