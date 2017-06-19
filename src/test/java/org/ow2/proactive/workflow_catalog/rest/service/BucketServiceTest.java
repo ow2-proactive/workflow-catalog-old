@@ -53,6 +53,10 @@ import org.springframework.data.web.PagedResourcesAssembler;
  */
 public class BucketServiceTest {
 
+    private static final String DEFAULT_WORKFLOWS_FOLDER = "/default-workflows";
+
+    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
+
     @InjectMocks
     private BucketService bucketService;
 
@@ -61,8 +65,6 @@ public class BucketServiceTest {
 
     @Mock
     private BucketRepository bucketRepository;
-
-    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
 
     @Before
     public void setUp() throws Exception {
@@ -111,7 +113,7 @@ public class BucketServiceTest {
     @Test
     public void testPopulateCatalogAndFillBuckets() throws Exception {
         final String[] buckets = { "Examples", "Cloud-automation" };
-        final String workflowsFolder = "/default-workflows";
+        final String workflowsFolder = DEFAULT_WORKFLOWS_FOLDER;
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         int totalNbWorkflows = 0;
 
@@ -133,7 +135,7 @@ public class BucketServiceTest {
         final String[] buckets = { "Titi", "Tata", "Toto" };
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/default-workflows");
+        bucketService.populateCatalog(buckets, DEFAULT_WORKFLOWS_FOLDER);
         verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
         verify(workflowService, times(0)).createWorkflow(anyLong(), any(Optional.class), anyObject());
     }
