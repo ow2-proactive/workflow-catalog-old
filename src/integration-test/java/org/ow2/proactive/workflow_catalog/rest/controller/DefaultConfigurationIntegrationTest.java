@@ -55,16 +55,20 @@ public class DefaultConfigurationIntegrationTest extends AbstractRestAssuredTest
 
     @Test
     public void defaultBucketsShouldBeCreatedBasedOnApplicationConfigurationProperty() {
+        int nbBuckets = 5;
+        int bucketId = 0;
         when().get(BUCKETS_RESOURCE)
               .then()
               .assertThat()
               .statusCode(HttpStatus.SC_OK)
-              .body("_embedded.bucketMetadataList", hasSize(4))
-              .body("_embedded.bucketMetadataList[0].name", is("Examples"))
-              .body("_embedded.bucketMetadataList[1].name", is("Cloud-automation"))
-              .body("_embedded.bucketMetadataList[2].name", is("Addons"))
-              .body("_embedded.bucketMetadataList[3].name", is("Machine_Learning"))
-              .body("page.totalElements", is(4));
+              .body("_embedded.bucketMetadataList", hasSize(nbBuckets))
+              .body("_embedded.bucketMetadataList[" + bucketId++ + "].name", is("Examples"))
+              .body("_embedded.bucketMetadataList[" + bucketId++ + "].name", is("Cloud-automation"))
+              .body("_embedded.bucketMetadataList[" + bucketId++ + "].name", is("Addons"))
+              .body("_embedded.bucketMetadataList[" + bucketId++ + "].name", is("Finance"))
+              .body("_embedded.bucketMetadataList[" + bucketId++ + "].name", is("Machine_Learning"))
+              .body("page.totalElements", is(nbBuckets));
+
     }
 
 }
