@@ -8,7 +8,10 @@
         onTaskError="continueJobExecution"
 >
   <variables>
+<<<<<<< HEAD
     <variable name="executable_file_path_from_dataspace" value="ptfSimulations" />
+=======
+>>>>>>> 3bbb014d9ec74c7e24d5e32f1421146ee44a8962
     <variable name="nbMC" value="10000" />
     <variable name="nbTimeSteps" value="255" />
     <variable name="horizon" value="1" />
@@ -78,7 +81,11 @@ runs=variables.get("nbTasks")
         <task ref="Split_MC_simulations"/>
       </depends>
       <inputFiles>
+<<<<<<< HEAD
         <files  includes="$executable_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
+=======
+        <files  includes="ptfSimulations" accessMode="transferFromGlobalSpace"/>
+>>>>>>> 3bbb014d9ec74c7e24d5e32f1421146ee44a8962
         <files  includes="$assets_params_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
         <files  includes="$assets_correlations_file_path_from_dataspace" accessMode="transferFromGlobalSpace"/>
       </inputFiles>
@@ -89,7 +96,10 @@ runs=variables.get("nbTasks")
 println "simulate_ptf_PnLs ..."
 
 // Retrieve variables
+<<<<<<< HEAD
 def executable_file_path_from_dataspace = variables.get("executable_file_path_from_dataspace")
+=======
+>>>>>>> 3bbb014d9ec74c7e24d5e32f1421146ee44a8962
 def task_id = variables.get("PA_TASK_REPLICATION")
 def nbMC_task = variables.get("nbMC_task_" + task_id)
 def nbTimeSteps = variables.get("nbTimeSteps")
@@ -99,16 +109,28 @@ def assets_params_file_path_from_dataspace = variables.get("assets_params_file_p
 def assets_correlations_file_path_from_dataspace = variables.get("assets_correlations_file_path_from_dataspace")
 
 // Set executable permission
+<<<<<<< HEAD
 def executable_file_path = new File(localspace, executable_file_path_from_dataspace).absolutePath
 ["chmod","+x", executable_file_path].execute().waitForProcessOutput(System.out, System.err)
 
 // Build the command
 def cmd = [executable_file_path, nbMC_task, nbTimeSteps, horizon, nbAssets, assets_params_file_path_from_dataspace, assets_correlations_file_path_from_dataspace, task_id]
+=======
+def executable_file_path = new File(localspace, "ptfSimulations").absolutePath
+["chmod","+x", executable_file_path].execute().waitForProcessOutput(System.out, System.err)
+
+// Build the command
+def cmd = ['/bin/sh', '-c', "docker run -v " + new File('.').absolutePath + ":/defaultglobal lballabio/quantlib:1.9-xenial /bin/bash -c 'cd defaultglobal; ./ptfSimulations " + nbMC_task + " " + nbTimeSteps + " " + horizon + " " + nbAssets + " " + assets_params_file_path_from_dataspace + " " +  assets_correlations_file_path_from_dataspace + " " + task_id + "'"]
+>>>>>>> 3bbb014d9ec74c7e24d5e32f1421146ee44a8962
 println cmd
 
 // Execute the command
 def sout = new StringBuilder()
 cmd.execute().waitForProcessOutput(sout, System.err)
+<<<<<<< HEAD
+=======
+println sout
+>>>>>>> 3bbb014d9ec74c7e24d5e32f1421146ee44a8962
 
 // Store ptf PnLs at horizon
 variables["outputs_" + task_id] = sout
