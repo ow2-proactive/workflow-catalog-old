@@ -6,7 +6,8 @@
     name="DLM_ObjDet_NS" 
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2">
+     maxNumberOfExecution="2"
+>
   <variables>
     <variable name="INPUT_IMAGE" value="data/dog.jpg" />
     <variable name="OUTPUT_IMAGE" value="output/dog.jpg" />

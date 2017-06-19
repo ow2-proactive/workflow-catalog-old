@@ -6,7 +6,8 @@
     name="DLM_AnoDet_a_NS" 
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2">
+     maxNumberOfExecution="2"
+>
   <variables>
     <variable name="INPUT_IMAGE" value="images/anomaly.jpg" />
     <variable name="OUTPUT_IMAGE" value="output/predictions.jpg" />

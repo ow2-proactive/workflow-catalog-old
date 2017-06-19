@@ -6,7 +6,8 @@
     name="tensorflow_nodesource_deploy" 
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2">
+     maxNumberOfExecution="2"
+>
   <variables>
     <variable name="username" value="USERNAME" />
     <variable name="password" value="PASSWORD" />
