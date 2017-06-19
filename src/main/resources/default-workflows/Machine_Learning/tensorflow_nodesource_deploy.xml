@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="urn:proactive:jobdescriptor:3.8"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
+    name="tensorflow_nodesource_deploy" 
+    priority="normal"
+    onTaskError="continueJobExecution"
+     maxNumberOfExecution="2">
+  <variables>
+    <variable name="username" value="USERNAME" />
+    <variable name="password" value="PASSWORD" />
+    <variable name="credentials" value="CREDENTIAL_GENERATED_BY_RESOURCE_MANAGER_PORTAL" />
+    <variable name="rmAddress" value="https://try.activeeon.com/rest/rm/" />
+    <variable name="NodeSourceName" value="TensorFlow" />
+    <variable name="nodesNumber" value="2" />
+    <variable name="CONTAINER_NAME" value="tf" />
+  </variables>
+  <taskFlow>
+    <task name="deploy_tensorflow_nodesource_tryqa">
+      <description>
+        <![CDATA[ The simplest task, ran by a bash engine. ]]>
+      </description>
+      <scriptExecutable>
+        <script>
+          <code language="bash">
+            <![CDATA[
+sessionid=$(curl -d "username=$variables_username&password=$variables_password" $variables_rmAddress"/login")
+
+echo "The session ID with current user"
+
+echo $sessionid
+             
+creds=$variables_credentials
+
+echo "The credential for the current username and password generated from the Resource Manager portal"
+             
+curl -v -H "sessionid:$sessionid" -d "nodeSourceName=$variables_NodeSourceName&infrastructureType=org.ow2.proactive.resourcemanager.nodesource.infrastructure.LocalInfrastructure&&infrastructureParameters=$variables_nodesNumber&infrastructureParameters=30000&infrastructureParameters=" --data-urlencode "infrastructureFileParameters=$creds" -d "policyType=org.ow2.proactive.resourcemanager.nodesource.policy.StaticPolicy&policyParameters=tokens=$variables_NodeSourceName&policyParameters=ME" $variables_rmAddress"/nodesource/create"
+
+echo " A node source is created"
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+    <task name="Linux_Bash_Task">
+      <description>
+        <![CDATA[ The simplest task, ran by a bash engine. ]]>
+      </description>
+      <genericInformation>
+        <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
+      </genericInformation>
+      <depends>
+        <task ref="deploy_tensorflow_nodesource_tryqa"/>
+      </depends>
+      <scriptExecutable>
+        <script>
+          <code language="bash">
+            <![CDATA[
+docker run -dit --name=$variables_CONTAINER_NAME gcr.io/tensorflow/tensorflow:latest-devel
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+  </taskFlow>
+</job>
