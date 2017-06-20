@@ -8,6 +8,8 @@ classes
 .gradle
 gradle/ext/
 /bin/
+.DS_Store
+
 
 # Eclipse
 .project
