@@ -3,11 +3,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="TensorFlow_Demo_Prediction" 
+    name="TensorFlow_Demo_Prediction" projectName="Machine Learning"
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2"
->
+     maxNumberOfExecution="2">
   <variables>
     <variable name="CONTAINER_NAME" value="tf" />
     <variable name="PREDICTION_IMAGE" value="2141413229_3f0425f972_n.jpg" />
@@ -16,8 +15,11 @@
     <variable name="PREDICTION_PATH" value="flower_photos/roses/" />
     <variable name="OUTPUT_PATH" value="/out/" />
   </variables>
+  <description>
+    <![CDATA[ Predict flower species using a previous trained model ]]>
+  </description>
   <taskFlow>
-    <task name="prediction">
+    <task name="Prediction">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
@@ -31,27 +33,21 @@
         <script>
           <code language="bash">
             <![CDATA[
-#docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -o /tmp/output_graph.pb https://raw.githubusercontent.com/sophiesongge/tensorflow_demo/master/output_graph.pb'
-
-#docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -o /tmp/output_labels.txt https://raw.githubusercontent.com/sophiesongge/tensorflow_demo/master/output_labels.txt'
-
 docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -O https://raw.githubusercontent.com/sophiesongge/tensorflow_demo/master/image_prediction.py'
-
 
 # python image_prediction.py -i flower_photos/roses/2141413229_3f0425f972_n.jpg -o test.jpg
 docker exec $variables_CONTAINER_NAME /bin/sh -c "python image_prediction.py -i $variables_PREDICTION_PATH/$variables_PREDICTION_IMAGE -o test.jpg"
 
 rm -r /tmp/output_images
-
 mkdir /tmp/output_images
 
-docker cp $variables_CONTAINER_NAME:/root/darknet/test.jpg /tmp/output_images/$variables_PREDICTION_IMAGE
+docker cp $variables_CONTAINER_NAME:/root/test.jpg /tmp/output_images/$variables_PREDICTION_IMAGE
 ]]>
           </code>
         </script>
       </scriptExecutable>
     </task>
-    <task name="download_data">
+    <task name="Download_Data">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
@@ -62,11 +58,19 @@ docker cp $variables_CONTAINER_NAME:/root/darknet/test.jpg /tmp/output_images/$v
         <script>
           <code language="bash">
             <![CDATA[
+# $variables_PREDICTION_PATH: flower_photos/roses/
+# $variables_PREDICTION_IMAGE: 2141413229_3f0425f972_n.jpg
+
 rm -r /tmp/input_images
 mkdir /tmp/input_images
 
+# Uncomment for prediction without training
+# docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -O http://download.tensorflow.org/example_images/flower_photos.tgz'
+# docker exec $variables_CONTAINER_NAME /bin/sh -c 'tar xzf flower_photos.tgz'
+# docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -o /tmp/output_graph.pb https://raw.githubusercontent.com/sophiesongge/tensorflow_demo/master/output_graph.pb'
+# docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -o /tmp/output_labels.txt https://raw.githubusercontent.com/sophiesongge/tensorflow_demo/master/output_labels.txt'
 
-docker cp $variables_CONTAINER_NAME:/root/darknet/$variables_PREDICTION_PATH/$variables_PREDICTION_IMAGE /tmp/input_images/$variables_PREDICTION_IMAGE
+docker cp $variables_CONTAINER_NAME:/root/$variables_PREDICTION_PATH/$variables_PREDICTION_IMAGE /tmp/input_images/$variables_PREDICTION_IMAGE
 ]]>
           </code>
         </script>
@@ -80,7 +84,7 @@ docker cp $variables_CONTAINER_NAME:/root/darknet/$variables_PREDICTION_PATH/$va
         <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
       </genericInformation>
       <depends>
-        <task ref="download_data"/>
+        <task ref="Download_Data"/>
       </depends>
       <scriptExecutable>
         <script>
@@ -119,7 +123,7 @@ resultMetadata.put("content.type", "image/jpg")
         <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
       </genericInformation>
       <depends>
-        <task ref="prediction"/>
+        <task ref="Prediction"/>
       </depends>
       <scriptExecutable>
         <script>

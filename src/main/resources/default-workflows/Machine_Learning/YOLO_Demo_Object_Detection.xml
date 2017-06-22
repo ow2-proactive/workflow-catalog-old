@@ -3,16 +3,18 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="DLM_ObjDet_NS" 
+    name="YOLO_Demo_Object_Detection" projectName="Machine Learning"
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2"
->
+     maxNumberOfExecution="2">
   <variables>
     <variable name="INPUT_IMAGE" value="data/dog.jpg" />
     <variable name="OUTPUT_IMAGE" value="output/dog.jpg" />
     <variable name="CONTAINER_NAME" value="tf" />
   </variables>
+  <description>
+    <![CDATA[ Finding instances of real-world objects of a given image ]]>
+  </description>
   <taskFlow>
     <task name="Obj_Detection">
       <description>
@@ -29,8 +31,7 @@
           <code language="bash">
             <![CDATA[
 # docker exec tf /bin/bash -c "./darknet detect cfg/yolo.cfg yolo.weights data/dog.jpg"
-# docker exec tf /bin/bash -c './darknet detect cfg/yolo.cfg yolo.weights data/dog.jpg'
-docker exec $variables_CONTAINER_NAME /bin/bash -c "./darknet detect cfg/yolo.cfg yolo.weights $variables_INPUT_IMAGE"
+docker exec $variables_CONTAINER_NAME /bin/bash -c "cd /root/darknet && ./darknet detect cfg/yolo.cfg yolo.weights $variables_INPUT_IMAGE"
 
 rm -r /tmp/output
 mkdir /tmp/output

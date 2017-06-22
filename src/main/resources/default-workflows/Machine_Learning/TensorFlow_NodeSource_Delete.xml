@@ -3,11 +3,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="tensorflow_nodesource_delete" 
+    name="TensorFlow_NodeSource_Delete" projectName="Machine Learning"
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2"
->
+     maxNumberOfExecution="2">
   <variables>
     <variable name="username" value="USERNAME" />
     <variable name="password" value="PASSWORD" />
@@ -17,13 +16,16 @@
     <variable name="nodesNumber" value="2" />
     <variable name="CONTAINER_NAME" value="tf" />
   </variables>
+  <description>
+    <![CDATA[ Delete a machine learning nodesource ]]>
+  </description>
   <taskFlow>
-    <task name="delete_tensorflow_nodesource">
+    <task name="Delete_NodeSource">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
       <depends>
-        <task ref="delete_docker_container"/>
+        <task ref="Delete_Docker_Container"/>
       </depends>
       <scriptExecutable>
         <script>
@@ -47,7 +49,7 @@ echo " A node source is deleted"
         </script>
       </scriptExecutable>
     </task>
-    <task name="delete_docker_container">
+    <task name="Delete_Docker_Container">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
