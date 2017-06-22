@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -37,6 +38,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -85,6 +87,13 @@ public class BucketController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
             Pageable pageable, PagedResourcesAssembler assembler) {
         return bucketService.listBuckets(ownerName, pageable, assembler);
+    }
+
+    @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @RequestMapping(value = "/buckets/{bucketId}", method = DELETE)
+    public ResponseEntity<?> delete(@PathVariable Long bucketId) {
+        return bucketService.deleteBucket(bucketId);
     }
 
 }

@@ -86,4 +86,10 @@ public class BucketControllerTest {
         bucketController.list(owner, mockedPageable, mockedAssembler);
         verify(bucketService, times(1)).listBuckets(owner, mockedPageable, mockedAssembler);
     }
+
+    @Test
+    public void testDelete() throws Exception {
+        bucketService.deleteBucket(1L);
+        verify(bucketService, times(1)).deleteBucket(1L);
+    }
 }

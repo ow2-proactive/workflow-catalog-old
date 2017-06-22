@@ -47,6 +47,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.google.common.io.ByteStreams;
@@ -139,6 +140,20 @@ public class BucketService {
         }
 
         return new BucketMetadata(bucket);
+    }
+
+    public ResponseEntity<?> deleteBucket(long bucketId) {
+        Bucket bucket = bucketRepository.findOne(bucketId);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException();
+        }
+
+        if (!bucket.getWorkflows().isEmpty()) {
+            throw new DeleteNonEmptyBucketException();
+        }
+        bucketRepository.delete(bucketId);
+        return ResponseEntity.ok(new BucketMetadata(bucket));
     }
 
     public PagedResources listBuckets(Optional<String> ownerName, Pageable pageable,
