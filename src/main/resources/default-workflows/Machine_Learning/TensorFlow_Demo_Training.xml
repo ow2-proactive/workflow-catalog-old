@@ -3,19 +3,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="TensorFlow_Demo_Training" 
+    name="TensorFlow_Demo_Training" projectName="Machine Learning"
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2"
->
+     maxNumberOfExecution="2">
   <variables>
-    <variable name="CONTAINER_NAME" value="tf" model=""/>
+    <variable name="CONTAINER_NAME" value="tf" />
     <variable name="TRAINING_SET_ADDRESS" value="http://download.tensorflow.org/example_images/flower_photos.tgz" />
     <variable name="TRAINING_SET_NAME" value="flower_photos.tgz" />
     <variable name="TRAINING_SET_PATH" value="flower_photos" />
   </variables>
+  <description>
+    <![CDATA[ Train a deep neural network to recognize flower species ]]>
+  </description>
   <taskFlow>
-    <task name="DownloadTrainingSet">
+    <task name="Download_Data">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
@@ -26,8 +28,6 @@
         <script>
           <code language="bash">
             <![CDATA[
-docker exec $variables_CONTAINER_NAME /bin/sh -c 'cd ~'
-
 docker exec $variables_CONTAINER_NAME /bin/sh -c 'curl -O '$variables_TRAINING_SET_ADDRESS
 
 docker exec $variables_CONTAINER_NAME /bin/sh -c 'tar xzf '$variables_TRAINING_SET_NAME
@@ -36,7 +36,7 @@ docker exec $variables_CONTAINER_NAME /bin/sh -c 'tar xzf '$variables_TRAINING_S
         </script>
       </scriptExecutable>
     </task>
-    <task name="TrainAModel">
+    <task name="Train_Model">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
@@ -44,7 +44,7 @@ docker exec $variables_CONTAINER_NAME /bin/sh -c 'tar xzf '$variables_TRAINING_S
         <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
       </genericInformation>
       <depends>
-        <task ref="DownloadTrainingSet"/>
+        <task ref="Download_Data"/>
       </depends>
       <scriptExecutable>
         <script>

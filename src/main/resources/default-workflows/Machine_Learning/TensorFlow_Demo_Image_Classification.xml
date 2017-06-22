@@ -3,18 +3,21 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="DLM_AnoDet_n_NS" 
+    name="TensorFlow_Demo_Image_Classification" projectName="Machine Learning"
     priority="normal"
     onTaskError="continueJobExecution"
      maxNumberOfExecution="2"
 >
   <variables>
-    <variable name="INPUT_IMAGE" value="images/normal.jpg" />
-    <variable name="OUTPUT_IMAGE" value="output/predictions.jpg" />
+    <variable name="INPUT_IMAGE" value="images/dog.jpg" />
+    <variable name="OUTPUT_IMAGE" value="output/dog.jpg" />
     <variable name="CONTAINER_NAME" value="tf" />
   </variables>
+  <description>
+    <![CDATA[ Classify an input image using a pre-trained deep neural network ]]>
+  </description>
   <taskFlow>
-    <task name="Anomaly_Det">
+    <task name="Classify">
       <description>
         <![CDATA[ The simplest task, ran by a cmd engine. ]]>
       </description>
@@ -28,23 +31,19 @@
         <script>
           <code language="bash">
             <![CDATA[
-# $variables_INPUT_IMAGE  = images/anomaly.jpg
-# $variables_OUTPUT_IMAGE = output/predictions.jpg
+# docker exec $variables_vm_name /bin/bash -c "python dl_image_prediction.py -i $variables_input_image -o $variables_output_image"
 
-# docker exec tf /bin/bash -c "./darknet detect cfg/yolo.cfg yolo.weights /root/deeplearning_demo/images/anomaly.jpg"
-docker exec $variables_CONTAINER_NAME /bin/bash -c "./darknet detect cfg/yolo.cfg yolo.weights /root/deeplearning_demo/$variables_INPUT_IMAGE"
-# generates predictions.json predictions.png at /root/darknet
+# $variables_INPUT_IMAGE  = images/dog.jpg
+# $variables_OUTPUT_IMAGE = output/dog.jpg
 
-# docker exec tf /bin/sh -c "cp /root/darknet/predictions.json /root/deeplearning_demo/json/predictions.json"
-docker exec $variables_CONTAINER_NAME /bin/sh -c "cp /root/darknet/predictions.json /root/deeplearning_demo/json/predictions.json"
+# python dl_image_prediction.py -i images/bear.jpg -o output/bear.jpg
 
-# python anomaly_prediction.py -i images/anomaly.jpg -o output/prediction.jpg -j json/predictions_anomaly.json
+# docker exec tf /bin/sh -c "cd /root/deeplearning_demo && python dl_image_prediction.py -i images/dog.jpg -o output/dog.jpg"
+docker exec tf /bin/sh -c "cd deeplearning_demo && python dl_image_prediction.py -i $variables_INPUT_IMAGE -o $variables_OUTPUT_IMAGE"
 
-# docker exec tf /bin/sh -c "cd /root/deeplearning_demo && python anomaly_prediction.py -i images/anomaly.jpg -o output/prediction.jpg -j json/predictions.json"
-docker exec $variables_CONTAINER_NAME /bin/sh -c "cd /root/deeplearning_demo && python anomaly_prediction.py -i $variables_INPUT_IMAGE -o $variables_OUTPUT_IMAGE -j json/predictions.json"
-
-# rm -r /tmp/output
+rm -r /tmp/output
 mkdir /tmp/output
+# docker cp tf:/root/deeplearning_demo/output/dog.jpg /tmp/output/dog.jpg
 docker cp $variables_CONTAINER_NAME:/root/deeplearning_demo/$variables_OUTPUT_IMAGE /tmp/$variables_OUTPUT_IMAGE
 ]]>
           </code>
@@ -98,7 +97,7 @@ resultMetadata.put("content.type", "image/jpg")
         <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
       </genericInformation>
       <depends>
-        <task ref="Anomaly_Det"/>
+        <task ref="Classify"/>
       </depends>
       <scriptExecutable>
         <script>
@@ -133,25 +132,24 @@ resultMetadata.put("content.type", "image/jpg")
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
+      <genericInformation>
+        <info name="NODE_ACCESS_TOKEN" value="TensorFlow"/>
+      </genericInformation>
       <scriptExecutable>
         <script>
           <code language="bash">
             <![CDATA[
-# $variables_INPUT_IMAGE  = images/anomaly.jpg
-# $variables_OUTPUT_IMAGE = output/predictions.jpg
+# $variables_INPUT_IMAGE  = images/dog.jpg
+# $variables_OUTPUT_IMAGE = output/dog.jpg
 
-docker exec $variables_CONTAINER_NAME /bin/sh -c "rm -r /root/deeplearning_demo"
+docker exec $variables_CONTAINER_NAME /bin/sh -c "rm -r deeplearning_demo"
 # docker exec tf /bin/sh -c "cd /root && git clone https://github.com/carolinepacheco/deeplearning_demo.git"
-docker exec $variables_CONTAINER_NAME /bin/sh -c "cd /root && git clone https://github.com/carolinepacheco/deeplearning_demo.git"
+docker exec $variables_CONTAINER_NAME /bin/sh -c "git clone https://github.com/carolinepacheco/deeplearning_demo.git"
 
-#rm -r /tmp/images
+rm -r /tmp/images
 mkdir /tmp/images
-
-# docker cp tf:/root/deeplearning_demo/images/anomaly.jpg /tmp/images/anomaly.jpg
+# docker cp tf:/root/deeplearning_demo/images/bear.jpg /tmp/images/bear.jpg
 docker cp $variables_CONTAINER_NAME:/root/deeplearning_demo/$variables_INPUT_IMAGE /tmp/$variables_INPUT_IMAGE
-
-#mkdir /tmp/data
-#docker cp $variables_CONTAINER_NAME:/root/darknet/$variables_INPUT_IMAGE /tmp/$variables_INPUT_IMAGE
 ]]>
           </code>
         </script>
