@@ -150,7 +150,7 @@ public class BucketService {
         }
 
         if (!bucket.getWorkflows().isEmpty()) {
-            throw new DeleteNotEmptyBucketException();
+            throw new DeleteNonEmptyBucketException();
         }
         bucketRepository.delete(bucketId);
         return ResponseEntity.ok(new BucketMetadata(bucket));

@@ -176,7 +176,7 @@ public class BucketServiceTest {
         bucketService.deleteBucket(1L);
     }
 
-    @Test(expected = DeleteNotEmptyBucketException.class)
+    @Test(expected = DeleteNonEmptyBucketException.class)
     public void testNotEmptyBucket() {
         Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         List<Workflow> workflows = new ArrayList<>();
