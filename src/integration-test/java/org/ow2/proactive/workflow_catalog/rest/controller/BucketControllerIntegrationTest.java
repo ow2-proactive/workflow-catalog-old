@@ -33,8 +33,10 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -43,7 +45,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -71,6 +75,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Autowired
+    private WorkflowService workflowService;
 
     @Test
     public void testCreateBucketShouldReturnSavedBucket() {
@@ -235,6 +242,43 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK)
                .body("_embedded.bucketMetadataList", hasSize(1))
                .body("page.number", is(0));
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        Bucket bucket = bucketRepository.save(new Bucket("Test_Bucket", "activeeon"));
+
+        given().pathParam("bucketId", bucket.getId())
+                .when()
+                .delete(BUCKET_RESOURCE)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK);
+
+        // check that the bucket is really gone
+        given().pathParam("bucketId", bucket.getId())
+                .when()
+                .get(BUCKET_RESOURCE)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testDeleteNonEmptyBucket() throws IOException {
+        Bucket bucketToSave = new Bucket("Test_Bucket", "activeeon");
+        Bucket bucket = bucketRepository.save(bucketToSave);
+
+       workflowService.createWorkflow(bucket.getId(),
+                Optional.empty(),
+                IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
+
+        given().pathParam("bucketId", bucket.getId())
+                .when()
+                .delete(BUCKET_RESOURCE)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
 }
