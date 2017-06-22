@@ -89,7 +89,7 @@ public class BucketController {
         return bucketService.listBuckets(ownerName, pageable, assembler);
     }
 
-    @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete the not empty bucket. You need to delete manually all workflows in the bucket before.")
+    @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId) {
