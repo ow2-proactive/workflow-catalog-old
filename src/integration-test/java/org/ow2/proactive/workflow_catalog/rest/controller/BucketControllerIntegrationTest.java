@@ -249,19 +249,19 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         Bucket bucket = bucketRepository.save(new Bucket("Test_Bucket", "activeeon"));
 
         given().pathParam("bucketId", bucket.getId())
-                .when()
-                .delete(BUCKET_RESOURCE)
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK);
+               .when()
+               .delete(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
 
         // check that the bucket is really gone
         given().pathParam("bucketId", bucket.getId())
-                .when()
-                .get(BUCKET_RESOURCE)
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_NOT_FOUND);
+               .when()
+               .get(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -269,16 +269,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         Bucket bucketToSave = new Bucket("Test_Bucket", "activeeon");
         Bucket bucket = bucketRepository.save(bucketToSave);
 
-       workflowService.createWorkflow(bucket.getId(),
-                Optional.empty(),
-                IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
+        workflowService.createWorkflow(bucket.getId(),
+                                       Optional.empty(),
+                                       IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
 
         given().pathParam("bucketId", bucket.getId())
-                .when()
-                .delete(BUCKET_RESOURCE)
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_FORBIDDEN);
+               .when()
+               .delete(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_FORBIDDEN);
     }
 
 }
