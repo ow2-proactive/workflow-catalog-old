@@ -27,10 +27,17 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -42,10 +49,13 @@ import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 
 /**
@@ -146,6 +156,35 @@ public class BucketServiceTest {
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist");
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+
+        when(mockedBucket.getWorkflows()).thenReturn(new ArrayList<>());
+        when(bucketRepository.findOne(anyLong())).thenReturn(mockedBucket);
+        ResponseEntity responseEntity = bucketService.deleteBucket(1L);
+        verify(bucketRepository, times(1)).findOne(1L);
+        verify(bucketRepository, times(1)).delete(1L);
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+    }
+
+    @Test(expected = BucketNotFoundException.class)
+    public void testDeleteInvalidBucket() {
+        when(bucketRepository.findOne(anyLong())).thenReturn(null);
+        bucketService.deleteBucket(1L);
+    }
+
+    @Test(expected = DeleteNotEmptyBucketException.class)
+    public void testNotEmptyBucket() {
+        Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        List<Workflow> workflows = new ArrayList<>();
+        workflows.add(new Workflow());
+        when(mockedBucket.getWorkflows()).thenReturn(workflows);
+        when(bucketRepository.findOne(anyLong())).thenReturn(mockedBucket);
+        bucketService.deleteBucket(1L);
+        verify(bucketRepository, times(1)).findOne(1L);
     }
 
     private void listBucket(Optional<String> owner) {
