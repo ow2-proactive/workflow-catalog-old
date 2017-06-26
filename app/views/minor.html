@@ -1,0 +1,33 @@
+<div class="ibox float-e-margins" ng-controller="WorkflowCatalogController">
+	             
+	<div class="ibox-heading" style="height: 50px">
+
+		<div id="left" class="m-b col-md-6">
+			<h1>Workflow Catalog Service</h1>
+		</div>
+		<div id="right" class="input-group m-b col-sm-6">
+			<span class="input-group-addon"><i class="fa fa-search"></i></span> <input
+				type="text" placeholder="Search" class="form-control"
+				ng-model="search">
+		</div>
+	</div>
+	               
+	<div class="ibox-content">
+		                   
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Buckets</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr ng-repeat="bucket in buckets">
+					<td>{{bucket.name}}</td>
+				</tr>
+			</tbody>
+		</table>
+		               
+	</div>
+	       
+</div>
