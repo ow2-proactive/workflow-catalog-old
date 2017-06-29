@@ -122,9 +122,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             return;
         }
 
-        $http.get(localStorage['catalogServiceUrl'] + 'buckets/')
+        $http.get(localStorage['catalogServiceUrl'] + 'buckets/?kind=workflow')
             .success(function (response) {
-                buckets = response._embedded.bucketMetadataList;
+                buckets = response;
                 $rootScope.$broadcast('event:WorkflowCatalogService');
             })
             .error(function (response) {
