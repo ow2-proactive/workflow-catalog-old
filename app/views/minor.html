@@ -22,7 +22,7 @@
 			</thead>
 
 			<tbody>
-				<tr ng-repeat="bucket in buckets">
+				<tr ng-repeat="bucket in buckets" ng-class="($index==main.selectedBucketIndex)?'active':''" ng-click="main.selectedBucketIndex=$index">
 					<td>{{bucket.name}}</td>
 				</tr>
 			</tbody>

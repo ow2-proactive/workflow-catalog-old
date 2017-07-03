@@ -19,41 +19,6 @@ nsCtrl.filter('getByKey', function () {
     }
 });
 
-// TODO: should really use a library such as moment.js to format date
-function formatDate(input, displaySeconds) {
-    var date = new Date(input);
-    minutes = date.getMinutes();
-    if (minutes < 10) {
-        minutes = '0' + minutes;
-    }
-
-    seconds = date.getSeconds();
-    if (seconds < 10) {
-        seconds = '0' + seconds;
-    }
-
-    var result = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate()
-        + " " + date.getHours() + ":" + minutes;
-
-    if (displaySeconds) {
-        result += ":" + seconds
-    }
-
-    return result;
-}
-
-nsCtrl.filter('displayDate', function () {
-    return function (input) {
-        return formatDate(input, true)
-    }
-});
-
-nsCtrl.filter('displayDateWithoutSeconds', function () {
-    return function (input) {
-        return formatDate(input, false)
-    }
-});
-
 
 // ---------- Services ----------
 
@@ -157,10 +122,11 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 // ---------- Controllers ----------
 
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
-
+	
     $rootScope.$on('event:WorkflowCatalogService', function () {
         $scope.buckets = WorkflowCatalogService.getBuckets();
     });
+   
 });
 
 nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogService) {
