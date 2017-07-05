@@ -22,12 +22,12 @@ function config($stateProvider, $urlRouterProvider) {
         })
         .state('index.main', {
             url: '/main',
-            templateUrl: 'views/minor.html',
+            templateUrl: 'views/workflow_catalog.html',
             data: {pageTitle: 'Portal'},
         })
-        .state('index.minor', {
-            url: '/minor',
-            templateUrl: 'views/minor.html',
+        .state('index.workflow_catalog', {
+            url: '/workflow_catalog',
+            templateUrl: 'views/workflow_catalog.html',
             data: {pageTitle: 'Example view'},
         });
 }
