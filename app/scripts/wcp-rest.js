@@ -1,4 +1,4 @@
-var nsCtrl = angular.module('ns-rest', ['ngResource', 'spring-data-rest', 'angular-toArrayFilter', 'oitozero.ngSweetAlert']);
+var nsCtrl = angular.module('wcp-rest', ['ngResource', 'spring-data-rest', 'angular-toArrayFilter', 'oitozero.ngSweetAlert']);
 
 function getSessionId() {
     return localStorage['pa.session'];
@@ -19,46 +19,11 @@ nsCtrl.filter('getByKey', function () {
     }
 });
 
-// TODO: should really use a library such as moment.js to format date
-function formatDate(input, displaySeconds) {
-    var date = new Date(input);
-    minutes = date.getMinutes();
-    if (minutes < 10) {
-        minutes = '0' + minutes;
-    }
-
-    seconds = date.getSeconds();
-    if (seconds < 10) {
-        seconds = '0' + seconds;
-    }
-
-    var result = date.getFullYear() + "/" + (date.getMonth() + 1) + "/" + date.getDate()
-        + " " + date.getHours() + ":" + minutes;
-
-    if (displaySeconds) {
-        result += ":" + seconds
-    }
-
-    return result;
-}
-
-nsCtrl.filter('displayDate', function () {
-    return function (input) {
-        return formatDate(input, true)
-    }
-});
-
-nsCtrl.filter('displayDateWithoutSeconds', function () {
-    return function (input) {
-        return formatDate(input, false)
-    }
-});
-
 
 // ---------- Services ----------
 
 nsCtrl.factory('LoadingPropertiesService', function ($http) {
-    $http.get('resources/nsportal.properties')
+    $http.get('resources/wcportal.properties')
         .success(function (response) {
         	console.log(response)
         	workflowCatalogPortalQueryPeriod = response.workflowCatalogPortalQueryPeriod;
@@ -86,6 +51,7 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
 
 nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, LoadingPropertiesService) {
     var buckets = [];
+    var workflows = [];
     var queryWorkflowCatalogServiceTimer;
 
     function doLogin(userName, userPass) {
@@ -122,13 +88,14 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             return;
         }
 
-        $http.get(localStorage['catalogServiceUrl'] + 'buckets/?kind=workflow')
+        var url = localStorage['catalogServiceUrl'] + 'buckets/?kind=workflow';
+        $http.get(url)
             .success(function (response) {
                 buckets = response;
                 $rootScope.$broadcast('event:WorkflowCatalogService');
             })
             .error(function (response) {
-                console.error("Error while querying catalog service:", response);
+                console.error("Error while querying catalog service on URL " + url + ":", response);
             });
     }
 
@@ -137,12 +104,27 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             $rootScope.$interval(queryWorkflowCatalogService, localStorage['workflowCatalogPortalQueryPeriod']);
     }
 
+    function queryWorkflows(bucketIndex, callback) {
+    	var bucketId = buckets[bucketIndex].id;
+    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/?kind=workflow';
+        $http.get(url)
+            .success(function (response) {
+            	callback(response);
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+            });
+    }
+
     return {
         doLogin: function (userName, userPass) {
             return doLogin(userName, userPass);
         },
         getBuckets: function () {
             return buckets;
+        },
+        getWorkflows: function (bucketIndex, callback) {
+        	queryWorkflows(bucketIndex, callback);
         },
         isConnected: function () {
             return getSessionId() != undefined;
@@ -157,10 +139,29 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 // ---------- Controllers ----------
 
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
+	
+	$scope.selectedBucketIndex = -1;
+	$scope.selectedWorkflowName = "";
+    
+	$scope.selectBucket = function(index){
+    	if (index != $scope.selectedBucketIndex){
+    		$scope.selectedBucketIndex = index;
+    		WorkflowCatalogService.getWorkflows(index, function(workflows){
+    			$scope.workflows = workflows;
+    			if (workflows.length > 0){
+    				$scope.selectedWorkflowName = workflows[0].name;
+    			}
+    		});
+    	}
+    }
 
     $rootScope.$on('event:WorkflowCatalogService', function () {
         $scope.buckets = WorkflowCatalogService.getBuckets();
+        if ($scope.selectedBucketIndex == -1){
+        	$scope.selectBucket(0);
+        }
     });
+   
 });
 
 nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogService) {

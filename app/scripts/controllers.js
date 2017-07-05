@@ -8,7 +8,6 @@
 function MainCtrl() {
 
     this.userName = localStorage['pa.login'];
-
 }
 
 angular
