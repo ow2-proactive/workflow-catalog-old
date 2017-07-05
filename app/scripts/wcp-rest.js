@@ -142,10 +142,14 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 	
 	$scope.selectedBucketIndex = -1;
 	$scope.selectedWorkflowName = "";
+	var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
+	$scope.url = initURL;
     
 	$scope.selectBucket = function(index){
-    	if (index != $scope.selectedBucketIndex){
+    	if (index != $scope.selectedBucketIndex && index != -1){
     		$scope.selectedBucketIndex = index;
+    		$scope.url = initURL + $scope.buckets[index].name;
+    		
     		WorkflowCatalogService.getWorkflows(index, function(workflows){
     			$scope.workflows = workflows;
     			if (workflows.length > 0){
@@ -154,6 +158,21 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     		});
     	}
     }
+	
+	$scope.goToUrl = function(){
+		var bucket = $scope.url.replace(initURL, '');
+		var found = false;
+		for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
+			if ($scope.buckets[bucketIndex].name == bucket){
+				$scope.selectBucket(bucketIndex);
+				found = true;
+				break;
+			}
+		}
+		if (!found){
+			console.log("Cannot find bucket named", bucket);
+		}
+	}
 
     $rootScope.$on('event:WorkflowCatalogService', function () {
         $scope.buckets = WorkflowCatalogService.getBuckets();
