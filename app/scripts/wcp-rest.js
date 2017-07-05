@@ -23,7 +23,7 @@ nsCtrl.filter('getByKey', function () {
 // ---------- Services ----------
 
 nsCtrl.factory('LoadingPropertiesService', function ($http) {
-    $http.get('resources/nsportal.properties')
+    $http.get('resources/wcportal.properties')
         .success(function (response) {
         	console.log(response)
         	workflowCatalogPortalQueryPeriod = response.workflowCatalogPortalQueryPeriod;
