@@ -116,6 +116,20 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function queryWorkflowDescription(bucketIndex, name, callback) {
+    	var bucketId = buckets[bucketIndex].id;
+    	encodedName = unescape(encodeURIComponent(name));
+    	
+    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName;
+        $http.get(url)
+            .success(function (response) {
+            	callback(response);
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+            });
+    }
+
     return {
         doLogin: function (userName, userPass) {
             return doLogin(userName, userPass);
@@ -125,6 +139,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         getWorkflows: function (bucketIndex, callback) {
         	queryWorkflows(bucketIndex, callback);
+        },
+        getWorkflowDescription: function (bucketIndex, workflowName, callback) {
+        	queryWorkflowDescription(bucketIndex, workflowName, callback);
         },
         isConnected: function () {
             return getSessionId() != undefined;
@@ -141,9 +158,17 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
 	
 	$scope.selectedBucketIndex = -1;
-	$scope.selectedWorkflowName = "";
+	$scope.selectedWorkflow = {};
 	var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
 	$scope.url = initURL;
+    
+	$scope.selectWorkflow = function(name){
+		$scope.selectedWorkflow.name = name;
+		
+		WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
+			console.log(workflow)
+		});
+    }
     
 	$scope.selectBucket = function(index){
     	if (index != $scope.selectedBucketIndex && index != -1){
@@ -153,7 +178,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     		WorkflowCatalogService.getWorkflows(index, function(workflows){
     			$scope.workflows = workflows;
     			if (workflows.length > 0){
-    				$scope.selectedWorkflowName = workflows[0].name;
+    				$scope.selectWorkflow(workflows[0].name);
     			}
     		});
     	}

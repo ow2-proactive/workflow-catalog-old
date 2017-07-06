@@ -44,9 +44,10 @@
 				<div class="ibox-content" style="overflow: auto;">
 					<div class="col-sm-3" ng-repeat="workflow in workflows">
 						<div class="panel"
-							ng-class="(workflow.name==selectedWorkflowName)?'panel-selected':'panel-default'"
-							ng-click="selectedWorkflowName=workflow.name">
-							<div class="panel-heading" style="height: 70px;">{{workflow.name}}</div>
+							ng-class="(workflow.name==selectedWorkflow.name)?'panel-selected':'panel-default'"
+							ng-click="selectWorkflow(workflow.name)">
+							<div class="panel-heading"
+								style="height: 70px;">{{workflow.name}}</div>
 							<div class="panel-body">
 								<img src="/studio/images/about_115.png" alt="{{workflow.name}}"
 									style="max-width: 100%; max-height: 100%;" />
