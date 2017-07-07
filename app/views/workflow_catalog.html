@@ -44,8 +44,8 @@
 				<div class="ibox-content" style="overflow: auto;">
 					<div class="col-sm-3" ng-repeat="workflow in workflows">
 						<div class="panel"
-							ng-class="(workflow.name==selectedWorkflow.name)?'panel-selected':'panel-default'"
-							ng-click="selectWorkflow(workflow.name)">
+							ng-class="getPanelStatus(workflow.name)"
+							ng-click="selectWorkflow(workflow.name, $event)">
 							<div class="panel-heading" style="height: 70px;">{{workflow.name}}</div>
 							<div class="panel-body">
 								<img src="/studio/images/about_115.png" alt="{{workflow.name}}"
@@ -63,29 +63,32 @@
 						<div class="panel-heading">
 							<h2>Description</h2>
 						</div>
-						<div class="panel-body">
+						<div class="panel-body" ng-if="selectedWorkflows.length > 0">
 							<p>
-								<b>Name:</b> {{selectedWorkflow.name}}<br>
-								<b>Project Name:</b> {{selectedWorkflow.project_name}}<br>
-								<b>Latest Update:</b> {{selectedWorkflow.commit_time}}
+								<b>Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].name}}<br>
+								<b>Project Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].project_name}}<br>
+								<b>Latest Update:</b> {{selectedWorkflows[selectedWorkflows.length - 1].commit_time}}
 							</p>
 							<p>
-								<b>Generic Info: </b><br>
-								<table style="border-collapse: separate;border-spacing: 10px;" ng-if="selectedWorkflow.gis.length > 0">
-									<tr ng-repeat="gi in selectedWorkflow.gis">
-										<td style="vertical-align: top;">{{gi.key}}</td>
-										<td style="vertical-align: top;">{{gi.value}}</td>
-									</tr>
-								</table>
+								<b>Generic Info: </b>
+
+                            <table style="border-collapse: separate; border-spacing: 10px;"
+                                ng-if="selectedWorkflows[selectedWorkflows.length - 1].gis.length > 0">
+								<tr ng-repeat="gi in selectedWorkflows[selectedWorkflows.length - 1].gis">
+									<td style="vertical-align: top;">{{gi.key}}</td>
+									<td style="vertical-align: top;">{{gi.value}}</td>
+								</tr>
+							</table>
 							</p>
 							<p>
-								<b>Default Variables: </b><br>
-								<table style="border-collapse: separate;border-spacing: 10px;" ng-if="selectedWorkflow.variables.length > 0">
-									<tr ng-repeat="variable in selectedWorkflow.variables">
-										<td class="align-text-top" style="vertical-align: top;">{{variable.key}}</td>
-										<td style="vertical-align: top;">{{variable.value}}</td>
-									</tr>
-								</table>
+								<b>Default Variables: </b>
+							<table style="border-collapse: separate; border-spacing: 10px;"
+								ng-if="selectedWorkflows[selectedWorkflows.length - 1].variables.length > 0">
+								<tr ng-repeat="variable in selectedWorkflows[selectedWorkflows.length - 1].variables">
+									<td class="align-text-top" style="vertical-align: top;">{{variable.key}}</td>
+									<td style="vertical-align: top;">{{variable.value}}</td>
+								</tr>
+							</table>
 							</p>
 						</div>
 					</div>
