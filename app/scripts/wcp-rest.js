@@ -166,7 +166,28 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 		$scope.selectedWorkflow.name = name;
 		
 		WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
-			console.log(workflow)
+			$scope.selectedWorkflow = {
+					name: workflow.name,
+					commit_time: workflow.commit_time,
+					gis: [],
+					variables: []
+			}
+			
+			for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
+				var label = workflow.object_key_values[metadataIndex].label;
+				var key = workflow.object_key_values[metadataIndex].key;
+				var value = workflow.object_key_values[metadataIndex].value;
+				
+				if (label == "job_information" && key == "project_name"){
+					$scope.selectedWorkflow.project_name = value;
+				}
+				if (label == "generic_information"){
+					$scope.selectedWorkflow.gis[$scope.selectedWorkflow.gis.length] = {key: key, value: value};
+				}
+				if (label == "variable"){
+					$scope.selectedWorkflow.variables[$scope.selectedWorkflow.variables.length] = {key: key, value: value};
+				}
+			}
 		});
     }
     
