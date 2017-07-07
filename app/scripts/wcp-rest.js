@@ -162,10 +162,21 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 	var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
 	$scope.url = initURL;
     
-	$scope.selectWorkflow = function(name){
+	$scope.selectWorkflow = function(name, event){
 		var selectedWorkflow = {name: name, gis:[], variables: []}
-		//TODO si la clé ctrl ou autre est pressée, on ajoute à la fin
-		$scope.selectedWorkflows = [selectedWorkflow];
+
+		//Check whether the ctrl button is pressed
+		if (event && (event.ctrlKey || event.metaKey)){
+			//First check whether the workflow is already selected
+			var index = getSelectedWorkflowIndex(name);
+			//If selected, it's removed from the list ; otherwise, it is added
+			if (index != -1)
+				$scope.selectedWorkflows.splice(index, 1);
+			else
+				$scope.selectedWorkflows.push(selectedWorkflow);
+		}else{
+			$scope.selectedWorkflows = [selectedWorkflow];
+		}
 		
 		WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
 			selectedWorkflow.commit_time = workflow.commit_time;
@@ -179,10 +190,10 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 					selectedWorkflow.project_name = value;
 				}
 				if (label == "generic_information"){
-					selectedWorkflow.gis[selectedWorkflow.gis.length] = {key: key, value: value};
+					selectedWorkflow.gis.push({key: key, value: value});
 				}
 				if (label == "variable"){
-					selectedWorkflow.variables[selectedWorkflow.variables.length] = {key: key, value: value};
+					selectedWorkflow.variables.push({key: key, value: value});
 				}
 			}
 		});
@@ -215,6 +226,22 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 		if (!found){
 			console.log("Cannot find bucket named", bucket);
 		}
+	}
+	
+	$scope.getPanelStatus = function(name){
+		if (getSelectedWorkflowIndex(name) != -1)
+			return 'panel-selected';
+		else
+			return 'panel-default';
+	}
+	
+	function getSelectedWorkflowIndex(name){
+		for (var index = 0; index < $scope.selectedWorkflows.length; index++){
+			if ($scope.selectedWorkflows[index].name == name){
+				return index;
+			}
+		}
+		return -1;
 	}
 
     $rootScope.$on('event:WorkflowCatalogService', function () {
