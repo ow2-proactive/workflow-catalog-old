@@ -120,7 +120,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     	var bucketId = buckets[bucketIndex].id;
     	encodedName = unescape(encodeURIComponent(name));
     	
-    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName;
+    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
         $http.get(url)
             .success(function (response) {
             	callback(response);
@@ -158,20 +158,17 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
 	
 	$scope.selectedBucketIndex = -1;
-	$scope.selectedWorkflow = {};
+	$scope.selectedWorkflows = [];
 	var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
 	$scope.url = initURL;
     
 	$scope.selectWorkflow = function(name){
-		$scope.selectedWorkflow.name = name;
+		var selectedWorkflow = {name: name, gis:[], variables: []}
+		//TODO si la clé ctrl ou autre est pressée, on ajoute à la fin
+		$scope.selectedWorkflows = [selectedWorkflow];
 		
 		WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
-			$scope.selectedWorkflow = {
-					name: workflow.name,
-					commit_time: workflow.commit_time,
-					gis: [],
-					variables: []
-			}
+			selectedWorkflow.commit_time = workflow.commit_time;
 			
 			for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
 				var label = workflow.object_key_values[metadataIndex].label;
@@ -179,13 +176,13 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 				var value = workflow.object_key_values[metadataIndex].value;
 				
 				if (label == "job_information" && key == "project_name"){
-					$scope.selectedWorkflow.project_name = value;
+					selectedWorkflow.project_name = value;
 				}
 				if (label == "generic_information"){
-					$scope.selectedWorkflow.gis[$scope.selectedWorkflow.gis.length] = {key: key, value: value};
+					selectedWorkflow.gis[selectedWorkflow.gis.length] = {key: key, value: value};
 				}
 				if (label == "variable"){
-					$scope.selectedWorkflow.variables[$scope.selectedWorkflow.variables.length] = {key: key, value: value};
+					selectedWorkflow.variables[selectedWorkflow.variables.length] = {key: key, value: value};
 				}
 			}
 		});
