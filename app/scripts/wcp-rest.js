@@ -25,9 +25,8 @@ nsCtrl.filter('getByKey', function () {
 nsCtrl.factory('LoadingPropertiesService', function ($http) {
     $http.get('resources/wcportal.properties')
         .success(function (response) {
-        	console.log(response)
-        	workflowCatalogPortalQueryPeriod = response.workflowCatalogPortalQueryPeriod;
-        	catalogServiceUrl = JSON.parse(angular.toJson(response.catalogServiceUrl, false));
+            workflowCatalogPortalQueryPeriod = response.workflowCatalogPortalQueryPeriod;
+            catalogServiceUrl = JSON.parse(angular.toJson(response.catalogServiceUrl, false));
             schedulerRestUrl = JSON.parse(angular.toJson(response.schedulerRestUrl, true));
 
             localStorage['workflowCatalogPortalQueryPeriod'] = workflowCatalogPortalQueryPeriod;
@@ -76,6 +75,22 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function deleteWorkflow(bucketIndex, name, callback) {
+        var bucketId = buckets[bucketIndex].id;
+        encodedName = unescape(encodeURIComponent(name));
+
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
+        console.log(url)
+        $http.delete(url)
+            .success(function (response) {
+                callback(true);
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+                callback(false);
+            });
+    }
+
     function queryWorkflowCatalogService() {
         if (getSessionId() == undefined) {
             if (queryWorkflowCatalogServiceTimer != undefined) {
@@ -105,11 +120,11 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function queryWorkflows(bucketIndex, callback) {
-    	var bucketId = buckets[bucketIndex].id;
-    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/?kind=workflow';
+        var bucketId = buckets[bucketIndex].id;
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/?kind=workflow';
         $http.get(url)
             .success(function (response) {
-            	callback(response);
+                callback(response);
             })
             .error(function (response) {
                 console.error("Error while querying catalog service on URL " + url + ":", response);
@@ -117,13 +132,13 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function queryWorkflowDescription(bucketIndex, name, callback) {
-    	var bucketId = buckets[bucketIndex].id;
-    	encodedName = unescape(encodeURIComponent(name));
-    	
-    	var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
+        var bucketId = buckets[bucketIndex].id;
+        encodedName = unescape(encodeURIComponent(name));
+        
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
         $http.get(url)
             .success(function (response) {
-            	callback(response);
+                callback(response);
             })
             .error(function (response) {
                 console.error("Error while querying catalog service on URL " + url + ":", response);
@@ -131,6 +146,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     return {
+        deleteWorkflow: function (bucketIndex, name, callback) {
+            return deleteWorkflow(bucketIndex, name, callback);
+        },
         doLogin: function (userName, userPass) {
             return doLogin(userName, userPass);
         },
@@ -138,10 +156,10 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             return buckets;
         },
         getWorkflows: function (bucketIndex, callback) {
-        	queryWorkflows(bucketIndex, callback);
+            queryWorkflows(bucketIndex, callback);
         },
         getWorkflowDescription: function (bucketIndex, workflowName, callback) {
-        	queryWorkflowDescription(bucketIndex, workflowName, callback);
+            queryWorkflowDescription(bucketIndex, workflowName, callback);
         },
         isConnected: function () {
             return getSessionId() != undefined;
@@ -156,99 +174,118 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 // ---------- Controllers ----------
 
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
-	
-	$scope.selectedBucketIndex = -1;
-	$scope.selectedWorkflows = [];
-	var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
-	$scope.url = initURL;
     
-	$scope.selectWorkflow = function(name, event){
-		var selectedWorkflow = {name: name, gis:[], variables: []}
+    $scope.selectedBucketIndex = 0;
+    $scope.selectedWorkflows = [];
+    var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
+    $scope.url = initURL;
+    
+    $scope.selectWorkflow = function(name, event){
+        var selectedWorkflow = {name: name, gis:[], variables: []}
 
-		//Check whether the ctrl button is pressed
-		if (event && (event.ctrlKey || event.metaKey)){
-			//First check whether the workflow is already selected
-			var index = getSelectedWorkflowIndex(name);
-			//If selected, it's removed from the list ; otherwise, it is added
-			if (index != -1)
-				$scope.selectedWorkflows.splice(index, 1);
-			else
-				$scope.selectedWorkflows.push(selectedWorkflow);
-		}else{
-			$scope.selectedWorkflows = [selectedWorkflow];
-		}
-		
-		WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
-			selectedWorkflow.commit_time = workflow.commit_time;
-			
-			for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
-				var label = workflow.object_key_values[metadataIndex].label;
-				var key = workflow.object_key_values[metadataIndex].key;
-				var value = workflow.object_key_values[metadataIndex].value;
-				
-				if (label == "job_information" && key == "project_name"){
-					selectedWorkflow.project_name = value;
-				}
-				if (label == "generic_information"){
-					selectedWorkflow.gis.push({key: key, value: value});
-				}
-				if (label == "variable"){
-					selectedWorkflow.variables.push({key: key, value: value});
-				}
-			}
-		});
+        //Check whether the ctrl button is pressed
+        if (event && (event.ctrlKey || event.metaKey)){
+            //First check whether the workflow is already selected
+            var index = getSelectedWorkflowIndex(name);
+            //If selected, it's removed from the list ; otherwise, it is added
+            if (index != -1)
+                $scope.selectedWorkflows.splice(index, 1);
+            else
+                $scope.selectedWorkflows.push(selectedWorkflow);
+        }else{
+            $scope.selectedWorkflows = [selectedWorkflow];
+        }
+        
+        WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
+            selectedWorkflow.commit_time = workflow.commit_time;
+            
+            for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
+                var label = workflow.object_key_values[metadataIndex].label;
+                var key = workflow.object_key_values[metadataIndex].key;
+                var value = workflow.object_key_values[metadataIndex].value;
+                
+                if (label == "job_information" && key == "project_name"){
+                    selectedWorkflow.project_name = value;
+                }
+                if (label == "generic_information"){
+                    selectedWorkflow.gis.push({key: key, value: value});
+                }
+                if (label == "variable"){
+                    selectedWorkflow.variables.push({key: key, value: value});
+                }
+            }
+        });
     }
     
-	$scope.selectBucket = function(index){
-    	if (index != $scope.selectedBucketIndex && index != -1){
-    		$scope.selectedBucketIndex = index;
-    		$scope.url = initURL + $scope.buckets[index].name;
-    		
-    		WorkflowCatalogService.getWorkflows(index, function(workflows){
-    			$scope.workflows = workflows;
-    			if (workflows.length > 0){
-    				$scope.selectWorkflow(workflows[0].name);
-    			}
-    		});
-    	}
+    $scope.selectBucket = function(index){
+        if (index >= 0 && index < $scope.buckets.length){
+            $scope.selectedBucketIndex = index;
+            $scope.url = initURL + $scope.buckets[index].name;
+            
+            WorkflowCatalogService.getWorkflows(index, function(workflows){
+                $scope.workflows = workflows;
+                if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
+                    $scope.selectWorkflow(workflows[0].name);
+                }
+            });
+        }
     }
-	
-	$scope.goToUrl = function(){
-		var bucket = $scope.url.replace(initURL, '');
-		var found = false;
-		for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
-			if ($scope.buckets[bucketIndex].name == bucket){
-				$scope.selectBucket(bucketIndex);
-				found = true;
-				break;
-			}
-		}
-		if (!found){
-			console.log("Cannot find bucket named", bucket);
-		}
-	}
-	
-	$scope.getPanelStatus = function(name){
-		if (getSelectedWorkflowIndex(name) != -1)
-			return 'panel-selected';
-		else
-			return 'panel-default';
-	}
-	
-	function getSelectedWorkflowIndex(name){
-		for (var index = 0; index < $scope.selectedWorkflows.length; index++){
-			if ($scope.selectedWorkflows[index].name == name){
-				return index;
-			}
-		}
-		return -1;
-	}
+    
+    $scope.goToUrl = function(){
+        var bucket = $scope.url.replace(initURL, '');
+        var found = false;
+        for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
+            if ($scope.buckets[bucketIndex].name == bucket){
+                $scope.selectBucket(bucketIndex);
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            console.log("Cannot find bucket named", bucket);
+        }
+    }
+    
+    $scope.getPanelStatus = function(name){
+        if (getSelectedWorkflowIndex(name) != -1)
+            return 'panel-selected';
+        else
+            return 'panel-default';
+    }
+    
+    function getSelectedWorkflowIndex(name){
+        for (var index = 0; index < $scope.selectedWorkflows.length; index++){
+            if ($scope.selectedWorkflows[index].name == name){
+                return index;
+            }
+        }
+        return -1;
+    }
+    
+    $scope.deleteSelectedWorkflows = function(){
+        var notDeletedWorkflows = [];
+        for (var index = 0; index < $scope.selectedWorkflows.length; index++){
+            var currentSelectedWorkflow = $scope.selectedWorkflows[index];
+            WorkflowCatalogService.deleteWorkflow($scope.selectedBucketIndex, currentSelectedWorkflow.name,
+                function(success){
+                    if (!success){
+                        console.log("Error deleting workflow name", currentSelectedWorkflow.name)
+                        notDeletedWorkflows.push(currentSelectedWorkflow);
+                    }
+                }
+            );
+        }
+        $scope.selectedWorkflows = notDeletedWorkflows;
+        updateBucketWorkflows();        
+    }
+    
+    function updateBucketWorkflows(){
+        $scope.selectBucket($scope.selectedBucketIndex);
+    }
 
     $rootScope.$on('event:WorkflowCatalogService', function () {
         $scope.buckets = WorkflowCatalogService.getBuckets();
-        if ($scope.selectedBucketIndex == -1){
-        	$scope.selectBucket(0);
-        }
+        updateBucketWorkflows();
     });
    
 });
