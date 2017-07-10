@@ -217,6 +217,10 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         });
     }
     
+    $scope.setURL = function(){
+        $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
+    }
+    
     $scope.selectBucket = function(index){
         selectBucket(index, true);
     }
@@ -225,7 +229,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         if (index >= 0 && index < $scope.buckets.length){
             $scope.selectedBucketIndex = index;
             if (clicked || $scope.url == initURL){
-                $scope.url = initURL + $scope.buckets[index].name;
+                $scope.setURL();
             }
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){

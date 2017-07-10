@@ -15,7 +15,7 @@
             <div class="ibox float-e-margins">
                 <div class="input-group m-b" style="width: 100%;">
                     <form ng-submit="goToUrl()">
-                        <input type="text" class="form-control" ng-model="url">
+                        <input type="text" class="form-control" ng-model="url" ng-blur="setURL()">
                     </form>
                 </div>
             </div>
