@@ -218,9 +218,15 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     }
     
     $scope.selectBucket = function(index){
+        selectBucket(index, true);
+    }
+    
+    function selectBucket(index, clicked){
         if (index >= 0 && index < $scope.buckets.length){
             $scope.selectedBucketIndex = index;
-            $scope.url = initURL + $scope.buckets[index].name;
+            if (clicked || $scope.url == initURL){
+                $scope.url = initURL + $scope.buckets[index].name;
+            }
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
@@ -236,7 +242,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         var found = false;
         for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
             if ($scope.buckets[bucketIndex].name == bucket){
-                $scope.selectBucket(bucketIndex);
+                selectBucket(bucketIndex);
                 found = true;
                 break;
             }
@@ -280,7 +286,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     }
     
     function updateBucketWorkflows(){
-        $scope.selectBucket($scope.selectedBucketIndex);
+        selectBucket($scope.selectedBucketIndex);
     }
 
     $rootScope.$on('event:WorkflowCatalogService', function () {
