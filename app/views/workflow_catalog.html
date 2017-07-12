@@ -52,14 +52,14 @@
         </div>
         <div class="col-lg-6">
             <div class="ibox float-e-margins">
-                <div class="ibox-content" style="overflow: auto;">
+                <div class="ibox-content" style="overflow: auto; height: 60vh;">
                     <div class="col-sm-3" ng-repeat="workflow in workflows">
                         <div class="panel"
                             ng-class="getPanelStatus(workflow.name)"
                             ng-click="selectWorkflow(workflow.name, $event)">
                             <div class="panel-heading" style="height: 70px;">{{workflow.name}}</div>
-                            <div class="panel-body">
-                                <img src="/studio/images/about_115.png" alt="{{workflow.name}}"
+                            <div class="panel-body" style="height: 140px;">
+                                <img src="{{getWorkflowIconUrl(workflow.name)}}" alt="{{workflow.name}}"
                                     style="max-width: 100%; max-height: 100%;" />
                             </div>
                         </div>

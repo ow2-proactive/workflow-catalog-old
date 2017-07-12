@@ -177,6 +177,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
+    $scope.images = {};
     var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
     $scope.url = initURL;
     
@@ -227,7 +228,10 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     function selectBucket(index, clicked){
         if (index >= 0 && index < $scope.buckets.length){
-            $scope.selectedBucketIndex = index;
+            if (index != $scope.selectedBucketIndex){
+                $scope.selectedWorkflows = [];
+                $scope.selectedBucketIndex = index;
+            }
             if (clicked || $scope.url == initURL){
                 $scope.setURL();
             }
@@ -236,6 +240,20 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                 $scope.workflows = workflows;
                 if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
                     $scope.selectWorkflow(workflows[0].name);
+                }
+
+                for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
+                    WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, workflows[workflowIndex].name, function(workflow){
+                        for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
+                            var label = workflow.object_key_values[metadataIndex].label;
+                            var key = workflow.object_key_values[metadataIndex].key;
+                            var value = workflow.object_key_values[metadataIndex].value;
+                            
+                            if (label == "generic_information" && key == "pca.action.icon"){
+                                $scope.images[workflow.name] = value; 
+                            }
+                        }
+                    });
                 }
             });
         }
@@ -261,6 +279,13 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             return 'panel-selected';
         else
             return 'panel-default';
+    }
+    
+    $scope.getWorkflowIconUrl = function(name){
+        if ($scope.images[name])
+            return $scope.images[name];
+        else
+            return '/studio/images/about_115.png';
     }
     
     function getSelectedWorkflowIndex(name){
