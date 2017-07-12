@@ -45,6 +45,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
 import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -94,7 +95,8 @@ public class WorkflowRevision implements Comparable {
     private List<Variable> variables;
 
     @Lob
-    @Column(name = "XML_PAYLOAD", columnDefinition = "blob", nullable = false)
+    @Type(type = "org.hibernate.type.BinaryType")
+    @Column(name = "XML_PAYLOAD", length = Integer.MAX_VALUE, nullable = false)
     private byte[] xmlPayload;
 
     public WorkflowRevision() {
