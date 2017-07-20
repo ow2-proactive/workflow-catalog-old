@@ -48,7 +48,7 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
     };
 });
 
-nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, LoadingPropertiesService) {
+nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
     var buckets = [];
     var workflows = [];
     var queryWorkflowCatalogServiceTimer;
@@ -80,7 +80,6 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         encodedName = unescape(encodeURIComponent(name));
 
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
-        console.log(url)
         $http.delete(url)
             .success(function (response) {
                 callback(true);
@@ -89,6 +88,27 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 console.error("Error while querying catalog service on URL " + url + ":", response);
                 callback(false);
             });
+    }
+
+    function exportWorkflows(bucketIndex, selectedWorkflows) {
+        if (selectedWorkflows.length > 0){
+            var bucketId = buckets[bucketIndex].id;
+            var names = "";
+            
+            for (var index = 0; index < selectedWorkflows.length; index++){
+                if (index > 0){
+                    names += ",";
+                }
+                
+                var currentSelectedWorkflow = selectedWorkflows[index];
+                var encodedName = unescape(encodeURIComponent(currentSelectedWorkflow.name));
+                names += encodedName;
+            }
+    
+            var path = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources?name=' + names;
+            console.log(path)
+            $window.location.assign(path);
+        }
     }
 
     function queryWorkflowCatalogService() {
@@ -151,6 +171,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         doLogin: function (userName, userPass) {
             return doLogin(userName, userPass);
+        },
+        exportWorkflows: function (bucketIndex, workflows) {
+            exportWorkflows(bucketIndex, workflows);
         },
         getBuckets: function () {
             return buckets;
@@ -312,6 +335,10 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
         $scope.selectedWorkflows = notDeletedWorkflows;
         updateBucketWorkflows();        
+    }
+    
+    $scope.exportSelectedWorkflows = function(){
+        WorkflowCatalogService.exportWorkflows($scope.selectedBucketIndex, $scope.selectedWorkflows);
     }
     
     function updateBucketWorkflows(){
