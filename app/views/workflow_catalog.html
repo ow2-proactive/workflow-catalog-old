@@ -1,6 +1,6 @@
 <div ng-controller="WorkflowCatalogController">
-          
-    <div class="row"> 
+         
+    <div class="row">
         <div class="ibox float-e-margins">
             <div class="ibox-heading" style="height: 50px">
                 <div id="left" class="m-b col-md-6">
@@ -15,19 +15,28 @@
             <div class="ibox float-e-margins">
                 <div class="input-group m-b" style="width: 100%;">
                     <form ng-submit="goToUrl()">
-                        <input type="text" class="form-control" ng-model="url" ng-blur="setURL()">
+                        <input type="text" class="form-control" ng-model="url"
+                            ng-blur="setURL()">
                     </form>
                 </div>
             </div>
         </div>
-        <div class="col-lg-offset-2 col-sm-1 col-lg-1 col-md-1">
-            <div class="ibox float-e-margins">
-                <button class="fa fa-trash" ng-click="deleteSelectedWorkflows();"></button>
+        <div class="col-lg-offset-2">
+            <div class="col-sm-1 col-lg-1 col-md-1">
+                <div class="ibox float-e-margins">
+                    <button class="fa fa-trash" ng-click="deleteSelectedWorkflows();"></button>
+                </div>
             </div>
-        </div>
-        <div class="col-sm-1 col-lg-1 col-md-1">
-            <div class="ibox float-e-margins">
-                <button class="fa fa-download " ng-click="exportSelectedWorkflows();"></button>
+            <div class="col-sm-1 col-lg-1 col-md-1">
+                <div class="ibox float-e-margins">
+                    <button class="fa fa-download"
+                        ng-click="exportSelectedWorkflows();"></button>
+                </div>
+            </div>
+            <div class="col-sm-1 col-lg-1 col-md-1">
+                <div class="ibox float-e-margins">
+                    <button class="fa fa-upload" data-toggle="modal" data-target="#zipUploadModal"></button>
+                </div>
             </div>
         </div>
     </div>
@@ -59,12 +68,12 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-content" style="overflow: auto; height: 60vh;">
                     <div class="col-sm-3" ng-repeat="workflow in workflows">
-                        <div class="panel"
-                            ng-class="getPanelStatus(workflow.name)"
+                        <div class="panel" ng-class="getPanelStatus(workflow.name)"
                             ng-click="selectWorkflow(workflow.name, $event)">
                             <div class="panel-heading" style="height: 70px;">{{workflow.name}}</div>
                             <div class="panel-body" style="height: 140px;">
-                                <img src="{{getWorkflowIconUrl(workflow.name)}}" alt="{{workflow.name}}"
+                                <img src="{{getWorkflowIconUrl(workflow.name)}}"
+                                    alt="{{workflow.name}}"
                                     style="max-width: 100%; max-height: 100%;" />
                             </div>
                         </div>
@@ -87,27 +96,49 @@
                             </p>
                             <p>
                                 <b>Generic Info: </b>
-
-                            <table style="border-collapse: separate; border-spacing: 10px;"
-                                ng-if="selectedWorkflows[selectedWorkflows.length - 1].gis.length > 0">
-                                <tr ng-repeat="gi in selectedWorkflows[selectedWorkflows.length - 1].gis">
-                                    <td style="vertical-align: top;">{{gi.key}}</td>
-                                    <td style="vertical-align: top;">{{gi.value}}</td>
-                                </tr>
-                            </table>
+	                            <table style="border-collapse: separate; border-spacing: 10px;"
+	                                ng-if="selectedWorkflows[selectedWorkflows.length - 1].gis.length > 0">
+	                                <tr ng-repeat="gi in selectedWorkflows[selectedWorkflows.length - 1].gis">
+	                                    <td style="vertical-align: top;">{{gi.key}}</td>
+	                                    <td style="vertical-align: top;">{{gi.value}}</td>
+	                                </tr>
+	                            </table>
                             </p>
                             <p>
                                 <b>Default Variables: </b>
-                            <table style="border-collapse: separate; border-spacing: 10px;"
-                                ng-if="selectedWorkflows[selectedWorkflows.length - 1].variables.length > 0">
-                                <tr ng-repeat="variable in selectedWorkflows[selectedWorkflows.length - 1].variables">
-                                    <td class="align-text-top" style="vertical-align: top;">{{variable.key}}</td>
-                                    <td style="vertical-align: top;">{{variable.value}}</td>
-                                </tr>
-                            </table>
+	                            <table style="border-collapse: separate; border-spacing: 10px;"
+	                                ng-if="selectedWorkflows[selectedWorkflows.length - 1].variables.length > 0">
+	                                <tr ng-repeat="variable in selectedWorkflows[selectedWorkflows.length - 1].variables">
+	                                    <td class="align-text-top" style="vertical-align: top;">{{variable.key}}</td>
+	                                    <td style="vertical-align: top;">{{variable.value}}</td>
+	                                </tr>
+	                            </table>
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+
+    <div id="zipUploadModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Upload a ZIP archive of workflows</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Please choose a ZIP archive containing workflows.</p>
+                    <input type="file" id="zipArchiveInput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="uploadArchiveOfWorkflows()">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
