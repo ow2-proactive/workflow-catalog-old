@@ -266,23 +266,21 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         });
     }
     
-    $scope.setURL = function(){
+    function setURL(){
         $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
     }
     
     $scope.selectBucket = function(index){
-        selectBucket(index, true);
+        selectBucket(index);
     }
     
-    function selectBucket(index, clicked){
+    function selectBucket(index){
         if (index >= 0 && index < $scope.buckets.length){
             if (index != $scope.selectedBucketIndex){
                 $scope.selectedWorkflows = [];
                 $scope.selectedBucketIndex = index;
             }
-            if (clicked || $scope.url == initURL){
-                $scope.setURL();
-            }
+            setURL();
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
@@ -304,21 +302,6 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                     });
                 }
             });
-        }
-    }
-    
-    $scope.goToUrl = function(){
-        var bucket = $scope.url.replace(initURL, '');
-        var found = false;
-        for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
-            if ($scope.buckets[bucketIndex].name == bucket){
-                selectBucket(bucketIndex);
-                found = true;
-                break;
-            }
-        }
-        if (!found){
-            console.log("Cannot find bucket named", bucket);
         }
     }
     
