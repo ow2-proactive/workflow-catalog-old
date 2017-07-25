@@ -111,6 +111,28 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         }
     }
 
+    function importArchiveOfWorkflows(bucketIndex, file) {  
+        var bucketId = buckets[bucketIndex].id;      
+        var reader = new FileReader();
+        reader.onloadend = function (e) {
+            var data = e.target.result;
+            var blob = new Blob([file], { type: "application/zip" });
+            
+            var payload = new FormData();
+            payload.append('file', blob);
+            payload.append('contentType', "application/xml");
+            payload.append('kind', "workflow");
+            payload.append('commitMessage', "Upload from ZIP archive");
+            var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources';
+            
+            $http.post(url, payload)
+                .error(function (response) {
+                    console.error("Error while querying catalog service on URL " + url + ":", response);
+                });
+        }
+        reader.readAsBinaryString(file);
+    }
+
     function queryWorkflowCatalogService() {
         if (getSessionId() == undefined) {
             if (queryWorkflowCatalogServiceTimer != undefined) {
@@ -184,6 +206,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         getWorkflowDescription: function (bucketIndex, workflowName, callback) {
             queryWorkflowDescription(bucketIndex, workflowName, callback);
         },
+        importArchiveOfWorkflows: function (bucketIndex, archive) {
+            importArchiveOfWorkflows(bucketIndex, archive);
+        },
         isConnected: function () {
             return getSessionId() != undefined;
         },
@@ -241,23 +266,21 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         });
     }
     
-    $scope.setURL = function(){
+    function setURL(){
         $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
     }
     
     $scope.selectBucket = function(index){
-        selectBucket(index, true);
+        selectBucket(index);
     }
     
-    function selectBucket(index, clicked){
+    function selectBucket(index){
         if (index >= 0 && index < $scope.buckets.length){
             if (index != $scope.selectedBucketIndex){
                 $scope.selectedWorkflows = [];
                 $scope.selectedBucketIndex = index;
             }
-            if (clicked || $scope.url == initURL){
-                $scope.setURL();
-            }
+            setURL();
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
@@ -279,21 +302,6 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                     });
                 }
             });
-        }
-    }
-    
-    $scope.goToUrl = function(){
-        var bucket = $scope.url.replace(initURL, '');
-        var found = false;
-        for (var bucketIndex = 0; bucketIndex < $scope.buckets.length; bucketIndex++){
-            if ($scope.buckets[bucketIndex].name == bucket){
-                selectBucket(bucketIndex);
-                found = true;
-                break;
-            }
-        }
-        if (!found){
-            console.log("Cannot find bucket named", bucket);
         }
     }
     
@@ -339,6 +347,11 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     $scope.exportSelectedWorkflows = function(){
         WorkflowCatalogService.exportWorkflows($scope.selectedBucketIndex, $scope.selectedWorkflows);
+    }
+    
+    $scope.uploadArchiveOfWorkflows = function(){
+        var file = document.getElementById('zipArchiveInput').files[0];
+        WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
     }
     
     function updateBucketWorkflows(){
