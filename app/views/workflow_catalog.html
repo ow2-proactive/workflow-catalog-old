@@ -9,34 +9,14 @@
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <!-- <div class="col-sm-6 col-lg-6 col-md-6">
-            <div class="ibox float-e-margins">
-                <div class="input-group m-b" style="width: 100%;">
-                     <p>{{url}}</p>
-                </div>
-            </div>
-        </div> -->
-        <div class="col-lg-offset-3">
-            <div class="col-sm-1 col-lg-1 col-md-1">
-                <div class="ibox float-e-margins">
-                    <button class="fa fa-trash" data-toggle="modal" data-target="#confirmDeleteModal"></button>
-                </div>
-            </div>
-            <div class="col-sm-1 col-lg-1 col-md-1">
-                <div class="ibox float-e-margins">
-                    <button class="fa fa-download"
-                        ng-click="exportSelectedWorkflows();"></button>
-                </div>
-            </div>
-            <div class="col-sm-1 col-lg-1 col-md-1">
-                <div class="ibox float-e-margins">
-                    <button class="fa fa-upload" data-toggle="modal" data-target="#zipUploadModal"></button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
+	<!-- <div class="col-sm-6 col-lg-6 col-md-6">
+	    <div class="ibox float-e-margins">
+	        <div class="input-group m-b" style="width: 100%;">
+	             <p>{{url}}</p>
+	        </div>
+	    </div>
+	</div> -->
            
     <div class="row">
         <div class="col-lg-3">
@@ -62,6 +42,24 @@
                  
         </div>
         <div class="col-lg-6 col-md-12 col-sm-12">
+		    <div>
+	            <div class="col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-trash" data-toggle="modal" data-target="#confirmDeleteModal"></button>
+	                </div>
+	            </div>
+	            <div class="col-lg-offset-1 col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-download"
+	                        ng-click="exportSelectedWorkflows();"></button>
+	                </div>
+	            </div>
+	            <div class="col-lg-offset-1 col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-upload" data-toggle="modal" data-target="#zipUploadModal"></button>
+	                </div>
+	            </div>
+		    </div>
             <div class="ibox float-e-margins">
                 <div class="ibox-content" style="overflow: auto; height: 60vh;">
                     <div class="col-sm-2 col md-2 col-lg-2" ng-repeat="workflow in workflows">
