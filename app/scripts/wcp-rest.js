@@ -258,16 +258,15 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                         var key = workflow.object_key_values[metadataIndex].key;
                         var value = workflow.object_key_values[metadataIndex].value;
 
-                        if (label == "generic_information"){
+                        if (label == "generic_information"){                            
+                            if (key == "pca.action.icon"){
+                                workflow.icon = value; 
+                            }
                             workflow.gis.push({key: key, value: value});
                         }
                         
                         if (label == "variable"){
                             workflow.variables.push({key: key, value: value});
-                        }
-                        
-                        if (label == "generic_information" && key == "pca.action.icon"){
-                            workflow.icon = value; 
                         }
                         
                         if (label == "job_information" && key == "project_name"){

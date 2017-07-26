@@ -68,7 +68,7 @@
 		                    <div class="col-sm-2 col-md-2 col-lg-2" ng-repeat="workflow in groupedWorkflows">
 		                        <div class="panel" ng-class="getPanelStatus(workflow)"
 		                            ng-click="selectWorkflow(workflow, $event)">
-		                            <div class="panel-heading" style="height: 60px; font-size: 10px;">{{workflow.name}}</div>
+		                            <div class="panel-heading" style="height: 60px; font-size: 10px; word-wrap: break-word;">{{workflow.name}}</div>
 		                            <div class="panel-body" style="height: 70px;">
 		                                <img src="{{workflow.icon}}"
 		                                    alt="{{workflow.name}}"
