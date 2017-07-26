@@ -62,16 +62,21 @@
 		    </div>
             <div class="ibox float-e-margins">
                 <div class="ibox-content" style="overflow: auto; height: 60vh;">
-                    <div class="col-sm-2 col md-2 col-lg-2" ng-repeat="workflow in workflows">
-                        <div class="panel" ng-class="getPanelStatus(workflow.name)"
-                            ng-click="selectWorkflow(workflow.name, $event)">
-                            <div class="panel-heading" style="height: 60px; font-size: 10px;">{{workflow.name}}</div>
-                            <div class="panel-body" style="height: 70px;">
-                                <img src="{{getWorkflowIconUrl(workflow.name)}}"
-                                    alt="{{workflow.name}}"
-                                    style="max-width: 100%; max-height: 100%;" />
-                            </div>
-                        </div>
+                    <div ng-repeat="groupedWorkflows in workflows | filter:query | groupBy: 'project_name'| toArray:true | orderBy:'$key'">
+                        <div class="row">
+	                        <h3>{{groupedWorkflows.$key}}</h3>
+		                    <div class="col-sm-2 col-md-2 col-lg-2" ng-repeat="workflow in groupedWorkflows">
+		                        <div class="panel" ng-class="getPanelStatus(workflow)"
+		                            ng-click="selectWorkflow(workflow, $event)">
+		                            <div class="panel-heading" style="height: 60px; font-size: 10px;">{{workflow.name}}</div>
+		                            <div class="panel-body" style="height: 70px;">
+		                                <img src="{{workflow.icon}}"
+		                                    alt="{{workflow.name}}"
+		                                    style="max-width: 100%; max-height: 100%;" />
+		                            </div>
+		                        </div>
+		                    </div>
+	                    </div>
                     </div>
                 </div>
             </div>

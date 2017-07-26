@@ -1,4 +1,4 @@
-var nsCtrl = angular.module('wcp-rest', ['ngResource', 'spring-data-rest', 'angular-toArrayFilter', 'oitozero.ngSweetAlert']);
+var nsCtrl = angular.module('wcp-rest', ['ngResource', 'spring-data-rest', 'angular-toArrayFilter', 'oitozero.ngSweetAlert', 'angular.filter']);
 
 function getSessionId() {
     return localStorage['pa.session'];
@@ -173,20 +173,6 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
-    function queryWorkflowDescription(bucketIndex, name, callback) {
-        var bucketId = buckets[bucketIndex].id;
-        encodedName = unescape(encodeURIComponent(name));
-        
-        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
-        $http.get(url)
-            .success(function (response) {
-                callback(response);
-            })
-            .error(function (response) {
-                console.error("Error while querying catalog service on URL " + url + ":", response);
-            });
-    }
-
     return {
         deleteWorkflow: function (bucketIndex, name, callback) {
             return deleteWorkflow(bucketIndex, name, callback);
@@ -202,9 +188,6 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         getWorkflows: function (bucketIndex, callback) {
             queryWorkflows(bucketIndex, callback);
-        },
-        getWorkflowDescription: function (bucketIndex, workflowName, callback) {
-            queryWorkflowDescription(bucketIndex, workflowName, callback);
         },
         importArchiveOfWorkflows: function (bucketIndex, archive) {
             importArchiveOfWorkflows(bucketIndex, archive);
@@ -225,45 +208,22 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
-    $scope.images = {};
     var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
     $scope.url = initURL;
     
-    $scope.selectWorkflow = function(name, event){
-        var selectedWorkflow = {name: name, gis:[], variables: []}
-
+    $scope.selectWorkflow = function(workflow, event){
         //Check whether the ctrl button is pressed
         if (event && (event.ctrlKey || event.metaKey)){
             //First check whether the workflow is already selected
-            var index = getSelectedWorkflowIndex(name);
+            var index = getSelectedWorkflowIndex(workflow);
             //If selected, it's removed from the list ; otherwise, it is added
             if (index != -1)
                 $scope.selectedWorkflows.splice(index, 1);
             else
-                $scope.selectedWorkflows.push(selectedWorkflow);
+                $scope.selectedWorkflows.push(workflow);
         }else{
-            $scope.selectedWorkflows = [selectedWorkflow];
+            $scope.selectedWorkflows = [workflow];
         }
-        
-        WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, name, function(workflow){
-            selectedWorkflow.commit_time = workflow.commit_time;
-            
-            for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
-                var label = workflow.object_key_values[metadataIndex].label;
-                var key = workflow.object_key_values[metadataIndex].key;
-                var value = workflow.object_key_values[metadataIndex].value;
-                
-                if (label == "job_information" && key == "project_name"){
-                    selectedWorkflow.project_name = value;
-                }
-                if (label == "generic_information"){
-                    selectedWorkflow.gis.push({key: key, value: value});
-                }
-                if (label == "variable"){
-                    selectedWorkflow.variables.push({key: key, value: value});
-                }
-            }
-        });
     }
     
     function setURL(){
@@ -284,44 +244,55 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
-                if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
-                    $scope.selectWorkflow(workflows[0].name);
-                }
 
                 for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
-                    WorkflowCatalogService.getWorkflowDescription($scope.selectedBucketIndex, workflows[workflowIndex].name, function(workflow){
-                        for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
-                            var label = workflow.object_key_values[metadataIndex].label;
-                            var key = workflow.object_key_values[metadataIndex].key;
-                            var value = workflow.object_key_values[metadataIndex].value;
-                            
-                            if (label == "generic_information" && key == "pca.action.icon"){
-                                $scope.images[workflow.name] = value; 
-                            }
+                    var workflow = workflows[workflowIndex];
+                    //Init of the data stored into the object_key_values list
+                    workflow.gis = [];
+                    workflow.variables = [];
+                    workflow.project_name = "";
+                    workflow.icon = "/studio/images/about_115.png";
+                    
+                    for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
+                        var label = workflow.object_key_values[metadataIndex].label;
+                        var key = workflow.object_key_values[metadataIndex].key;
+                        var value = workflow.object_key_values[metadataIndex].value;
+
+                        if (label == "generic_information"){
+                            workflow.gis.push({key: key, value: value});
                         }
-                    });
+                        
+                        if (label == "variable"){
+                            workflow.variables.push({key: key, value: value});
+                        }
+                        
+                        if (label == "generic_information" && key == "pca.action.icon"){
+                            workflow.icon = value; 
+                        }
+                        
+                        if (label == "job_information" && key == "project_name"){
+                            workflow.project_name = value;
+                        }
+                    }
+                }
+                
+                if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
+                    $scope.selectWorkflow(workflows[0]);
                 }
             });
         }
     }
     
-    $scope.getPanelStatus = function(name){
-        if (getSelectedWorkflowIndex(name) != -1)
+    $scope.getPanelStatus = function(workflow){
+        if (getSelectedWorkflowIndex(workflow) != -1)
             return 'panel-selected';
         else
             return 'panel-default';
     }
     
-    $scope.getWorkflowIconUrl = function(name){
-        if ($scope.images[name])
-            return $scope.images[name];
-        else
-            return '/studio/images/about_115.png';
-    }
-    
-    function getSelectedWorkflowIndex(name){
+    function getSelectedWorkflowIndex(workflow){
         for (var index = 0; index < $scope.selectedWorkflows.length; index++){
-            if ($scope.selectedWorkflows[index].name == name){
+            if ($scope.selectedWorkflows[index].name == workflow.name){
                 return index;
             }
         }
