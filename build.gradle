@@ -20,6 +20,9 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url "http://repository.activeeon.com/content/groups/proactive/"
+        }
     }
     dependencies {
         classpath 'com.moowork.gradle:gradle-grunt-plugin:0.12'
