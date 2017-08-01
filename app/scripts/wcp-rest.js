@@ -93,7 +93,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     function addBucket(name, owner, callback) {
             var payload = new FormData();
             payload.append('name', name);
-            payload.append('owner', owner);
+            if(owner != ""){
+                payload.append('owner', owner);
+            }
 
             var url = localStorage['catalogServiceUrl'] + 'buckets/';
             $http.post(url, payload)
@@ -244,6 +246,21 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             $scope.selectedWorkflows = [workflow];
         }
     }
+
+    $scope.group_vals = [
+       {
+          group: ""
+       },
+       {
+          group: "B"
+       },
+       {
+          group: "C"
+       },
+       {
+          group: "A"
+       }
+       ]
     
     function setURL(){
         $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
@@ -340,7 +357,8 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 
      $scope.addBucket = function(){
         var bucketName = document.getElementById('bucketName').value;
-        var bucketOwner = document.getElementById('bucketOwner').value;
+        var bucketOwner = $scope.selectedGroup.group;
+        alert("bla"+ $scope.selectedGroup.group + "bla");
         WorkflowCatalogService.addBucket(bucketName, bucketOwner,
             function(success){
                 if (!success){
