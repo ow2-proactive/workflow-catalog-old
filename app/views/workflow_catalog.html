@@ -85,10 +85,12 @@
                                 <b>Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].name}}<br>
                                 <b>Project Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].project_name}}<br>
                                 <b>Latest Update:</b><br>
-                                {{selectedWorkflows[selectedWorkflows.length - 1].commit_time}} 
-                                <span data-toggle="modal" data-target="#listRevisionsModal" ng-click="updateRevisionsList()">
-                                    <span class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></span>
-                                </span>
+                                <table style="width:100%"><tr>
+                                    <td>{{selectedWorkflows[selectedWorkflows.length - 1].commit_time}}</td>
+	                                <td><span data-toggle="modal" data-target="#listRevisionsModal" ng-click="updateRevisionsList()">
+	                                    <span class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></span>
+	                                </span></td>
+	                            </tr></table>
                             </p>
                             <p>
                                 <b>Generic Info: </b>
