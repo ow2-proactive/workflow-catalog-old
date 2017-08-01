@@ -9,14 +9,6 @@
             </div>
         </div>
     </div>
-    
-	<!-- <div class="col-sm-6 col-lg-6 col-md-6">
-	    <div class="ibox float-e-margins">
-	        <div class="input-group m-b" style="width: 100%;">
-	             <p>{{url}}</p>
-	        </div>
-	    </div>
-	</div> -->
            
     <div class="row">
         <div class="col-lg-3">
@@ -62,7 +54,7 @@
 		    </div>
             <div class="ibox float-e-margins">
                 <div class="ibox-content" style="overflow: auto; height: 60vh;">
-                    <div ng-repeat="groupedWorkflows in workflows | filter:query | groupBy: 'project_name'| toArray:true | orderBy:'$key'">
+                    <div ng-repeat="groupedWorkflows in workflows | groupBy: 'project_name'| toArray:true | orderBy:'$key'">
                         <div class="row">
 	                        <h3>{{groupedWorkflows.$key}}</h3>
 		                    <div class="col-sm-2 col-md-2 col-lg-2" ng-repeat="workflow in groupedWorkflows">
@@ -92,7 +84,13 @@
                             <p>
                                 <b>Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].name}}<br>
                                 <b>Project Name:</b> {{selectedWorkflows[selectedWorkflows.length - 1].project_name}}<br>
-                                <b>Latest Update:</b> {{selectedWorkflows[selectedWorkflows.length - 1].commit_time}}
+                                <b>Latest Update:</b><br>
+                                <table style="width:100%"><tr>
+                                    <td>{{selectedWorkflows[selectedWorkflows.length - 1].commit_time}}</td>
+	                                <td><span data-toggle="modal" data-target="#listRevisionsModal" ng-click="updateRevisionsList()">
+	                                    <span class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></span>
+	                                </span></td>
+	                            </tr></table>
                             </p>
                             <p>
                                 <b>Generic Info: </b>
@@ -155,6 +153,33 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="deleteSelectedWorkflows()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="listRevisionsModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">List the revisions of {{selectedWorkflows[selectedWorkflows.length - 1].name}}</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr ng-repeat="revision in lastSelectedWorkflowRevisions"
+                                ng-class="($index==selectedRevisionIndex)?'active':''"
+                                ng-click="selectRevision($index)">
+                                <td>{{revision.commit_time}}</td>
+                                <td>{{revision.commit_message}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
