@@ -171,6 +171,7 @@
                                 ng-class="($index==selectedRevisionIndex)?'active':''"
                                 ng-click="selectRevision($index)">
                                 <td>{{revision.commit_time}}</td>
+                                <td>{{revision.commit_message}}</td>
                             </tr>
                         </tbody>
                     </table>
