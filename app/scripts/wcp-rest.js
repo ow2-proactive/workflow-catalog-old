@@ -156,6 +156,18 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function queryWorkflowRevisions(bucketIndex, workflowName, callback) {
+        var bucketId = buckets[bucketIndex].id;
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/revisions';
+        $http.get(url)
+            .success(function (response) {
+                callback(response);
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+            });
+    }
+
     return {
         deleteWorkflow: function (bucketIndex, name, callback) {
             return deleteWorkflow(bucketIndex, name, callback);
@@ -171,6 +183,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         getWorkflows: function (bucketIndex, callback) {
             queryWorkflows(bucketIndex, callback);
+        },
+        getWorkflowRevisions: function (bucketIndex, workflowName, callback) {
+            queryWorkflowRevisions(bucketIndex, workflowName, callback);
         },
         importArchiveOfWorkflows: function (bucketIndex, archive) {
             importArchiveOfWorkflows(bucketIndex, archive);
@@ -191,6 +206,8 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
+    $scope.selectedRevisionIndex = 0;
+    $scope.lastSelectedWorkflowRevisions = [];
     
     $scope.selectWorkflow = function(workflow, event){
         //Check whether the ctrl button is pressed
@@ -207,8 +224,20 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
     }
     
+    $scope.selectRevision = function(index){
+        $scope.selectedRevisionIndex = index;
+    }
+    
     $scope.selectBucket = function(index){
         selectBucket(index);
+    }
+    
+    $scope.updateRevisionsList = function(){
+        $scope.lastSelectedWorkflowRevisions = [];
+        var selectedWorkflowName = $scope.selectedWorkflows[$scope.selectedWorkflows.length - 1].name;
+        WorkflowCatalogService.getWorkflowRevisions($scope.selectedBucketIndex, selectedWorkflowName, function(revisions){
+            $scope.lastSelectedWorkflowRevisions = revisions;
+        });
     }
     
     function selectBucket(index){
