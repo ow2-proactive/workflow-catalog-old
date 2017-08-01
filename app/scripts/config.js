@@ -20,15 +20,9 @@ function config($stateProvider, $urlRouterProvider) {
             url: '/index',
             templateUrl: 'views/common/content.html'
         })
-        .state('index.main', {
-            url: '/main',
-            templateUrl: 'views/workflow_catalog.html',
-            data: {pageTitle: 'Portal'},
-        })
         .state('index.workflow_catalog', {
             url: '/workflow_catalog',
-            templateUrl: 'views/workflow_catalog.html',
-            data: {pageTitle: 'Example view'},
+            templateUrl: 'views/workflow_catalog.html'
         });
 }
 
@@ -61,7 +55,7 @@ angular
                 $state.go('login');
             } else {
             	WorkflowCatalogService.startRegularWorkflowCatalogServiceQuery();
-                $state.go('index.main');
+                $state.go('index.workflow_catalog');
             }
         });
     });

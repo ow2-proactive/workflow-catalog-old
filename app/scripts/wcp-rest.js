@@ -4,22 +4,6 @@ function getSessionId() {
     return localStorage['pa.session'];
 }
 
-// ---------- Utilities ----------
-
-nsCtrl.filter('getByKey', function () {
-    return function (propertyName, collection) {
-        var len = collection.length;
-        var value = '';
-        for (var i = 0; i < len; i++) {
-            if (collection[i].key == propertyName) {
-                value = collection[i].value;
-            }
-        }
-        return value;
-    }
-});
-
-
 // ---------- Services ----------
 
 nsCtrl.factory('LoadingPropertiesService', function ($http) {
@@ -106,7 +90,6 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             }
     
             var path = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources?name=' + names;
-            console.log(path)
             $window.location.assign(path);
         }
     }
@@ -204,12 +187,10 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
 // ---------- Controllers ----------
 
-nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
+nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, $location, SpringDataRestAdapter, WorkflowCatalogService) {
     
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
-    var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
-    $scope.url = initURL;
     
     $scope.selectWorkflow = function(workflow, event){
         //Check whether the ctrl button is pressed
@@ -226,10 +207,6 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
     }
     
-    function setURL(){
-        $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
-    }
-    
     $scope.selectBucket = function(index){
         selectBucket(index);
     }
@@ -240,7 +217,6 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                 $scope.selectedWorkflows = [];
                 $scope.selectedBucketIndex = index;
             }
-            setURL();
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
@@ -352,7 +328,7 @@ nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogSe
                     console.log('Authentication succeeded');
 
                     // Redirect to the main page
-                    $state.go('index.main');
+                    $state.go('index.workflow_catalog');
 
                     // Start workflow catalog refreshing services
                     WorkflowCatalogService.startRegularWorkflowCatalogServiceQuery();
