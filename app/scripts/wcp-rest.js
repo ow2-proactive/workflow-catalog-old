@@ -90,6 +90,22 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function addBucket(name, owner, callback) {
+            var payload = new FormData();
+            payload.append('name', name);
+            payload.append('owner', owner);
+
+            var url = localStorage['catalogServiceUrl'] + 'buckets/';
+            $http.post(url, payload)
+                .success(function (response) {
+                    callback(true);
+                })
+                .error(function (response) {
+                    console.error("Error while querying catalog service on URL " + url + ":", response);
+                    callback(false);
+                });
+        }
+
     function exportWorkflows(bucketIndex, selectedWorkflows) {
         if (selectedWorkflows.length > 0){
             var bucketId = buckets[bucketIndex].id;
@@ -197,6 +213,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         startRegularWorkflowCatalogServiceQuery: function () {
             return startRegularWorkflowCatalogServiceQuery();
+        },
+        addBucket: function (name, owner, callback) {
+            return addBucket(name, owner, callback);
         }
     };
 });
@@ -318,7 +337,19 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.exportSelectedWorkflows = function(){
         WorkflowCatalogService.exportWorkflows($scope.selectedBucketIndex, $scope.selectedWorkflows);
     }
-    
+
+     $scope.addBucket = function(){
+        var bucketName = document.getElementById('bucketName').value;
+        var bucketOwner = document.getElementById('bucketOwner').value;
+        WorkflowCatalogService.addBucket(bucketName, bucketOwner,
+            function(success){
+                if (!success){
+                    console.log("Error adding the new bucket", bucketName);
+                }
+            }
+        );
+     }
+
     $scope.uploadArchiveOfWorkflows = function(){
         var file = document.getElementById('zipArchiveInput').files[0];
         WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
