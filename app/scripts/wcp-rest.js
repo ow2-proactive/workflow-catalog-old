@@ -220,9 +220,13 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, $location, SpringDataRestAdapter, WorkflowCatalogService) {
     
     $scope.selectedBucketIndex = 0;
+    //The list of workflow names that have been selected
     $scope.selectedWorkflows = [];
+    // The index of the selected revision
     $scope.selectedRevisionIndex = 0;
+    // The list of revisions of the displayed workflow
     $scope.lastSelectedWorkflowRevisions = [];
+    // lastSelectedWorkflow is the last workflow that has been selected (so the displayed one on the right)
     $scope.lastSelectedWorkflow = null;
     
     $scope.selectWorkflow = function(workflowName, event){
@@ -245,11 +249,14 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         updateLastSelectedWorkflow();
     }
     
+    // This function updates the var lastSelectedWorkflow which is the displayed workflow on the right panel
     function updateLastSelectedWorkflow(){
         var length = $scope.selectedWorkflows.length;
         $scope.lastSelectedWorkflow = null;
         if (length > 0){
+            // The last selected workflow is the last item in the list of selected workflows
             var lastSelectedWorkflowName = $scope.selectedWorkflows[length - 1];
+            //Then we retrieve the corresponding workflow in the list of workflows and assign it to the variable lastSelectedWorkflow
             for (var index = 0; index < $scope.workflows.length; index++){
                 var currentWorkflow = $scope.workflows[index]
                 if (currentWorkflow.name == lastSelectedWorkflowName){
