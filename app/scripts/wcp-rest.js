@@ -168,6 +168,18 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function restoreRevision(bucketIndex, workflowName, revisionCommitTime) {
+        var bucketId = buckets[bucketIndex].id;
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/?commitTime=' + revisionCommitTime;
+        $http.put(url)
+            .success(function (response) {
+                console.log("Revision successfully restored");
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+            });
+    }
+
     return {
         deleteWorkflow: function (bucketIndex, name, callback) {
             return deleteWorkflow(bucketIndex, name, callback);
@@ -192,6 +204,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         isConnected: function () {
             return getSessionId() != undefined;
+        },
+        restoreRevision: function (bucketId, workflowName, revisionCommitTime) {
+            return restoreRevision(bucketId, workflowName, revisionCommitTime);
         },
         startRegularWorkflowCatalogServiceQuery: function () {
             return startRegularWorkflowCatalogServiceQuery();
@@ -351,6 +366,11 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.uploadArchiveOfWorkflows = function(){
         var file = document.getElementById('zipArchiveInput').files[0];
         WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
+    }
+    
+    $scope.restoreRevision = function(){
+        var selectedRevision = $scope.lastSelectedWorkflowRevisions[$scope.selectedRevisionIndex];
+        WorkflowCatalogService.restoreRevision($scope.selectedBucketIndex, selectedRevision.name, selectedRevision.commit_time_raw);
     }
     
     function updateBucketWorkflows(){
