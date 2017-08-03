@@ -23,6 +23,7 @@
 
                         <tbody>
                             <tr ng-repeat="bucket in buckets"
+                                class="clickable-element"
                                 ng-class="($index==selectedBucketIndex)?'active':''"
                                 ng-click="selectBucket($index)">
                                 <td>{{bucket.name}}</td>
@@ -58,7 +59,7 @@
                         <div class="row">
 	                        <h3>{{groupedWorkflows.$key}}</h3>
 		                    <div class="col-sm-2 col-md-2 col-lg-2" ng-repeat="workflow in groupedWorkflows">
-		                        <div class="panel" ng-class="getPanelStatus(workflow)"
+		                        <div class="panel clickable-element" ng-class="getPanelStatus(workflow)"
 		                            ng-click="selectWorkflow(workflow.name, $event)">
 		                            <div class="panel-heading" style="height: 60px; font-size: 10px; word-wrap: break-word;">{{workflow.name}}</div>
 		                            <div class="panel-body" style="height: 70px;">
@@ -88,7 +89,7 @@
                                 <table style="width:100%"><tr>
                                     <td>{{lastSelectedWorkflow.commit_time}}</td>
 	                                <td><span data-toggle="modal" data-target="#listRevisionsModal" ng-click="updateRevisionsList()">
-	                                    <span class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></span>
+	                                    <button class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></button>
 	                                </span></td>
 	                            </tr></table>
                             </p>
