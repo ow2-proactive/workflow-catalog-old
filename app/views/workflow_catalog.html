@@ -183,8 +183,9 @@
                         </tr>
                         <tr>
                             <td><label class="col-sm-6 control-label ng-binding">group: </label></td>
-                            <td><select class="form-control" ng-init="selectedGroup = group_vals[0]" ng-model='selectedGroup' ng-options='val.group for val in group_vals | unique:group'></select><td>
-                            Selected:{{selectedGroup.group}}
+                            <!--<td><select class="form-control" ng-init="selectedGroup = group_vals[0]" ng-model='selectedGroup' ng-options='val.group for val in group_vals | unique:group'></select><td>-->
+                            <!--<td><select class="form-control" ng-init="selectedGroup = groups[0]" ng-model='selectedGroup' ng-options='val for val in groups'></select><td>-->
+                            <td><select class="form-control" ng-init="selectedGroup = schedulerGroupService.getGroups()[0]" ng-model='selectedGroup' ng-options='val for val in schedulerGroupService.getGroups()'></select><td>
                         </tr>
                     </table>
 

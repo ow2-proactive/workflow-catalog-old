@@ -48,6 +48,38 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
     };
 });
 
+nsCtrl.factory('schedulerGroupService', function ($http) {
+    var groups = ["not init"];
+
+    function updateGroupList() {
+//                var sessionid = getSessionId();
+//
+//                var userdata = $http.get(localStorage['schedulerRestUrl'] + 'logins/sessionid/' + sessionid + '/userdata/')
+//
+//                var userdataJson = JSON.parse(data);
+//
+//                var groupsList = userdataJson.groups;
+
+                var groupsList = ["g1", "g2"];
+
+                groupsList.unshift("", "Lalala");
+
+                alert(groupsList);
+
+                groups = groupsList;
+    }
+
+
+    return {
+            updateGroupList: function () {
+                return updateGroupList();
+            },
+            getGroups: function() {
+                return groups;
+            }
+        };
+});
+
 nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
     var buckets = [];
     var workflows = [];
@@ -91,6 +123,8 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function addBucket(name, owner, callback) {
+            alert("In the service the owner is: " + owner);
+
             var payload = new FormData();
             payload.append('name', name);
             if(owner != ""){
@@ -225,8 +259,11 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
 // ---------- Controllers ----------
 
-nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService) {
-    
+nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService, schedulerGroupService) {
+
+     $scope.schedulerGroupService = schedulerGroupService;
+     $scope.schedulerGroupService.updateGroupList();
+
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
     var initURL = 'http://proactive-dashboard/workflow-catalog/buckets/'
@@ -246,6 +283,33 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             $scope.selectedWorkflows = [workflow];
         }
     }
+
+    //
+
+//        $scope.groups = function(){
+
+//            var sessionid = getSessionId();
+//
+//            var userdata = $http.get(localStorage['schedulerRestUrl'] + 'logins/sessionid/' + sessionid + '/userdata/')
+//
+//            var userdataJson = JSON.parse(data);
+//
+//            var groupsList = userdataJson.groups;
+
+//            var groupsList = ['group1', 'group2', 'group3'];
+
+//            alert(groupsList);
+//            groupsList.unshift("", "Lalala");
+
+//            alert(groupsList);
+
+//            return groupsList;
+
+//            $scope.groups = groupsList;
+//        }()
+
+$scope.group_test = ["A","Something"]
+console.log($scope.group_test);
 
     $scope.group_vals = [
        {
@@ -357,8 +421,9 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
 
      $scope.addBucket = function(){
         var bucketName = document.getElementById('bucketName').value;
-        var bucketOwner = $scope.selectedGroup.group;
-        alert("bla"+ $scope.selectedGroup.group + "bla");
+//        var bucketOwner = $scope.selectedGroup.group;
+        var bucketOwner = $scope.selectedGroup;
+
         WorkflowCatalogService.addBucket(bucketName, bucketOwner,
             function(success){
                 if (!success){
