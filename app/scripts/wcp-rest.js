@@ -34,9 +34,29 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
 
 nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
     var buckets = [];
-    var workflows = [];
     var queryWorkflowCatalogServiceTimer;
 
+    function compareWorkflowsList(workflowsList1, workflowsList2){
+        if (!workflowsList1 || !workflowsList2){
+            return false;
+        }
+        
+        if (workflowsList1.length != workflowsList2.length){
+            return false;
+        }
+        
+        for (var index = 0; index < workflowsList1.length; index++){
+            var workflow1 = workflowsList1[index];
+            var workflow2 = workflowsList2[index];
+            
+            if (workflow1.commit_time_raw != workflow2.commit_time_raw){
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     function doLogin(userName, userPass) {
         var authData = $.param({'username': userName, 'password': userPass});
         var authConfig = {
@@ -179,8 +199,43 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 console.error("Error while querying catalog service on URL " + url + ":", response);
             });
     }
+    
+    function setWorkflowsData(workflows){
+        for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
+            var workflow = workflows[workflowIndex];
+            //Init of the data stored into the object_key_values list
+            workflow.gis = [];
+            workflow.variables = [];
+            workflow.project_name = "";
+            workflow.icon = "/studio/images/about_115.png";
+            
+            for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
+                var label = workflow.object_key_values[metadataIndex].label;
+                var key = workflow.object_key_values[metadataIndex].key;
+                var value = workflow.object_key_values[metadataIndex].value;
+
+                if (label == "generic_information"){                            
+                    if (key == "pca.action.icon"){
+                        workflow.icon = value; 
+                    }
+                    workflow.gis.push({key: key, value: value});
+                }
+                
+                if (label == "variable"){
+                    workflow.variables.push({key: key, value: value});
+                }
+                
+                if (label == "job_information" && key == "project_name"){
+                    workflow.project_name = value;
+                }
+            }
+        }
+    }
 
     return {
+        compareWorkflowsList: function(workflowsList1, workflowsList2){
+            return compareWorkflowsList(workflowsList1, workflowsList2);
+        },
         deleteWorkflow: function (bucketIndex, name, callback) {
             return deleteWorkflow(bucketIndex, name, callback);
         },
@@ -207,6 +262,8 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         restoreRevision: function (bucketId, workflowName, revisionCommitTime) {
             return restoreRevision(bucketId, workflowName, revisionCommitTime);
+        },setWorkflowsData: function(workflows){
+            setWorkflowsData(workflows);
         },
         startRegularWorkflowCatalogServiceQuery: function () {
             return startRegularWorkflowCatalogServiceQuery();
@@ -290,41 +347,15 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             }
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
-                $scope.workflows = workflows;
-                updateLastSelectedWorkflow();
-
-                for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
-                    var workflow = workflows[workflowIndex];
-                    //Init of the data stored into the object_key_values list
-                    workflow.gis = [];
-                    workflow.variables = [];
-                    workflow.project_name = "";
-                    workflow.icon = "/studio/images/about_115.png";
+                if (!WorkflowCatalogService.compareWorkflowsList($scope.workflows, workflows)){
+                    $scope.workflows = workflows;
+                    updateLastSelectedWorkflow();
+    
+                    WorkflowCatalogService.setWorkflowsData(workflows);
                     
-                    for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
-                        var label = workflow.object_key_values[metadataIndex].label;
-                        var key = workflow.object_key_values[metadataIndex].key;
-                        var value = workflow.object_key_values[metadataIndex].value;
-
-                        if (label == "generic_information"){                            
-                            if (key == "pca.action.icon"){
-                                workflow.icon = value; 
-                            }
-                            workflow.gis.push({key: key, value: value});
-                        }
-                        
-                        if (label == "variable"){
-                            workflow.variables.push({key: key, value: value});
-                        }
-                        
-                        if (label == "job_information" && key == "project_name"){
-                            workflow.project_name = value;
-                        }
+                    if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
+                        $scope.selectWorkflow(workflows[0].name);
                     }
-                }
-                
-                if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
-                    $scope.selectWorkflow(workflows[0].name);
                 }
             });
         }
