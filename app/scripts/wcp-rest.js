@@ -84,8 +84,8 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                     names += ",";
                 }
                 
-                var currentSelectedWorkflow = selectedWorkflows[index];
-                var encodedName = unescape(encodeURIComponent(currentSelectedWorkflow.name));
+                var currentSelectedWorkflowName = selectedWorkflows[index];
+                var encodedName = unescape(encodeURIComponent(currentSelectedWorkflowName));
                 names += encodedName;
             }
     
@@ -168,6 +168,18 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             });
     }
 
+    function restoreRevision(bucketIndex, workflowName, revisionCommitTime) {
+        var bucketId = buckets[bucketIndex].id;
+        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/?commitTime=' + revisionCommitTime;
+        $http.put(url)
+            .success(function (response) {
+                console.log("Revision successfully restored");
+            })
+            .error(function (response) {
+                console.error("Error while querying catalog service on URL " + url + ":", response);
+            });
+    }
+
     return {
         deleteWorkflow: function (bucketIndex, name, callback) {
             return deleteWorkflow(bucketIndex, name, callback);
@@ -193,6 +205,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         isConnected: function () {
             return getSessionId() != undefined;
         },
+        restoreRevision: function (bucketId, workflowName, revisionCommitTime) {
+            return restoreRevision(bucketId, workflowName, revisionCommitTime);
+        },
         startRegularWorkflowCatalogServiceQuery: function () {
             return startRegularWorkflowCatalogServiceQuery();
         }
@@ -205,22 +220,49 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, $location, SpringDataRestAdapter, WorkflowCatalogService) {
     
     $scope.selectedBucketIndex = 0;
+    //The list of workflow names that have been selected
     $scope.selectedWorkflows = [];
+    // The index of the selected revision
     $scope.selectedRevisionIndex = 0;
+    // The list of revisions of the displayed workflow
     $scope.lastSelectedWorkflowRevisions = [];
+    // lastSelectedWorkflow is the last workflow that has been selected (so the displayed one on the right)
+    $scope.lastSelectedWorkflow = null;
     
-    $scope.selectWorkflow = function(workflow, event){
+    $scope.selectWorkflow = function(workflowName, event){
         //Check whether the ctrl button is pressed
         if (event && (event.ctrlKey || event.metaKey)){
             //First check whether the workflow is already selected
-            var index = getSelectedWorkflowIndex(workflow);
+            var index = getSelectedWorkflowIndex(workflowName);
             //If selected, it's removed from the list ; otherwise, it is added
-            if (index != -1)
-                $scope.selectedWorkflows.splice(index, 1);
-            else
-                $scope.selectedWorkflows.push(workflow);
+            if (index != -1){
+                if ($scope.selectedWorkflows.length > 1){
+                    $scope.selectedWorkflows.splice(index, 1);
+                }
+            }
+            else {
+                $scope.selectedWorkflows.push(workflowName);
+            }
         }else{
-            $scope.selectedWorkflows = [workflow];
+            $scope.selectedWorkflows = [workflowName];
+        }
+        updateLastSelectedWorkflow();
+    }
+    
+    // This function updates the var lastSelectedWorkflow which is the displayed workflow on the right panel
+    function updateLastSelectedWorkflow(){
+        var length = $scope.selectedWorkflows.length;
+        $scope.lastSelectedWorkflow = null;
+        if (length > 0){
+            // The last selected workflow is the last item in the list of selected workflows
+            var lastSelectedWorkflowName = $scope.selectedWorkflows[length - 1];
+            //Then we retrieve the corresponding workflow in the list of workflows and assign it to the variable lastSelectedWorkflow
+            for (var index = 0; index < $scope.workflows.length; index++){
+                var currentWorkflow = $scope.workflows[index]
+                if (currentWorkflow.name == lastSelectedWorkflowName){
+                    $scope.lastSelectedWorkflow = currentWorkflow;
+                }
+            }
         }
     }
     
@@ -234,7 +276,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     
     $scope.updateRevisionsList = function(){
         $scope.lastSelectedWorkflowRevisions = [];
-        var selectedWorkflowName = $scope.selectedWorkflows[$scope.selectedWorkflows.length - 1].name;
+        var selectedWorkflowName = $scope.lastSelectedWorkflow.name;
         WorkflowCatalogService.getWorkflowRevisions($scope.selectedBucketIndex, selectedWorkflowName, function(revisions){
             $scope.lastSelectedWorkflowRevisions = revisions;
         });
@@ -249,6 +291,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 $scope.workflows = workflows;
+                updateLastSelectedWorkflow();
 
                 for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
                     var workflow = workflows[workflowIndex];
@@ -281,22 +324,22 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                 }
                 
                 if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
-                    $scope.selectWorkflow(workflows[0]);
+                    $scope.selectWorkflow(workflows[0].name);
                 }
             });
         }
     }
     
     $scope.getPanelStatus = function(workflow){
-        if (getSelectedWorkflowIndex(workflow) != -1)
+        if (getSelectedWorkflowIndex(workflow.name) != -1)
             return 'panel-selected';
         else
             return 'panel-default';
     }
     
-    function getSelectedWorkflowIndex(workflow){
+    function getSelectedWorkflowIndex(workflowName){
         for (var index = 0; index < $scope.selectedWorkflows.length; index++){
-            if ($scope.selectedWorkflows[index].name == workflow.name){
+            if ($scope.selectedWorkflows[index] == workflowName){
                 return index;
             }
         }
@@ -304,13 +347,16 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     }
     
     $scope.deleteSelectedWorkflows = function(){
+        var workflowsToDelete = $scope.selectedWorkflows;
+        $scope.selectedWorkflows = [];
+        updateLastSelectedWorkflow();
         var notDeletedWorkflows = [];
-        for (var index = 0; index < $scope.selectedWorkflows.length; index++){
-            var currentSelectedWorkflow = $scope.selectedWorkflows[index];
-            WorkflowCatalogService.deleteWorkflow($scope.selectedBucketIndex, currentSelectedWorkflow.name,
+        for (var index = 0; index < workflowsToDelete.length; index++){
+            var currentSelectedWorkflow = workflowsToDelete[index];
+            WorkflowCatalogService.deleteWorkflow($scope.selectedBucketIndex, currentSelectedWorkflow,
                 function(success){
                     if (!success){
-                        console.log("Error deleting workflow name", currentSelectedWorkflow.name)
+                        console.log("Error deleting workflow name", currentSelectedWorkflow)
                         notDeletedWorkflows.push(currentSelectedWorkflow);
                     }
                 }
@@ -327,6 +373,11 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.uploadArchiveOfWorkflows = function(){
         var file = document.getElementById('zipArchiveInput').files[0];
         WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
+    }
+    
+    $scope.restoreRevision = function(){
+        var selectedRevision = $scope.lastSelectedWorkflowRevisions[$scope.selectedRevisionIndex];
+        WorkflowCatalogService.restoreRevision($scope.selectedBucketIndex, selectedRevision.name, selectedRevision.commit_time_raw);
     }
     
     function updateBucketWorkflows(){
