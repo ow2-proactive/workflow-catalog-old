@@ -48,38 +48,6 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
     };
 });
 
-nsCtrl.factory('schedulerGroupService', function ($http) {
-    var groups = ["not init"];
-
-    function updateGroupList() {
-//                var sessionid = getSessionId();
-//
-//                var userdata = $http.get(localStorage['schedulerRestUrl'] + 'logins/sessionid/' + sessionid + '/userdata/')
-//
-//                var userdataJson = JSON.parse(data);
-//
-//                var groupsList = userdataJson.groups;
-
-                var groupsList = ["g1", "g2"];
-
-                groupsList.unshift("", "Lalala");
-
-                alert(groupsList);
-
-                groups = groupsList;
-    }
-
-
-    return {
-            updateGroupList: function () {
-                return updateGroupList();
-            },
-            getGroups: function() {
-                return groups;
-            }
-        };
-});
-
 nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
     var buckets = [];
     var workflows = [];
