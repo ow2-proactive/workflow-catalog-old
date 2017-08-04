@@ -1,7 +1,7 @@
 <div class="inmodal" ng-controller="PCACatalogController">
     <div class="modal-header">
         <i class="fa fa-laptop modal-icon"></i>
-        <h4 class="modal-title">{{workflow.name}} </h4>
+        <p class="modal-title">{{workflow.name}} </p>
         <small class="font-bold">{{workflow.project_name}}</small>
     </div>
     <div class="modal-body" ng-repeat="variable in workflow.variables track by $index">

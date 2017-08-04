@@ -1,0 +1,22 @@
+.clickable-element{
+    cursor:pointer;
+}
+.btn.nohover:hover {
+    pointer-events: none;
+}
+.btn.nohover  {
+    pointer-events: none;
+}
+.panel-selected {
+  border-color: #353535;
+}
+.panel-selected > .panel-heading {
+  color: #353535;
+  background-color: #bababa;
+  border-color: #353535;
+}
+.modal-title {
+  margin-top: 5px;
+  font-weight: 600;
+  font-size: 14px;
+}
