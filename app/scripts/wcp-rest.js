@@ -95,6 +95,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function addBucket(name, owner, callback) {
+            var sessionid = getSessionId();
+            var headers = { 'sessionID': sessionid };
+
             var payload = new FormData();
             payload.append('name', name);
 
@@ -108,7 +111,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             payload.append('owner', owner);
 
             var url = localStorage['catalogServiceUrl'] + 'buckets/';
-            $http.post(url, payload)
+            $http.post(url, payload, { headers: headers } )
                 .success(function (response) {
                     callback(true);
                 })
