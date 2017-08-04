@@ -48,7 +48,7 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
     };
 });
 
-nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
+nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService, schedulerGroupService) {
     var buckets = [];
     var workflows = [];
     var queryWorkflowCatalogServiceTimer;
@@ -91,13 +91,19 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function addBucket(name, owner, callback) {
-            alert("In the service the owner is: " + owner);
-
             var payload = new FormData();
             payload.append('name', name);
-            if(owner != ""){
-                payload.append('owner', owner);
+
+            var DEFAULT_BUCKET_OWNER = "object-catalog"
+
+            if(owner == schedulerGroupService.defaultNoGroup){
+                owner = DEFAULT_BUCKET_OWNER;
             }
+             payload.append('owner', owner);
+//            for new catalog service, where the owner parameter is not required
+//            if(owner != schedulerGroupService.defaultNoGroup){
+//                payload.append('owner', owner);
+//            }
 
             var url = localStorage['catalogServiceUrl'] + 'buckets/';
             $http.post(url, payload)
@@ -229,8 +235,8 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
 nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, SpringDataRestAdapter, WorkflowCatalogService, schedulerGroupService) {
 
-     $scope.schedulerGroupService = schedulerGroupService;
-     $scope.schedulerGroupService.updateGroupList();
+    $scope.schedulerGroupService = schedulerGroupService;
+    $scope.schedulerGroupService.updateGroupList();
 
     $scope.selectedBucketIndex = 0;
     $scope.selectedWorkflows = [];
@@ -252,48 +258,6 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
     }
 
-    //
-
-//        $scope.groups = function(){
-
-//            var sessionid = getSessionId();
-//
-//            var userdata = $http.get(localStorage['schedulerRestUrl'] + 'logins/sessionid/' + sessionid + '/userdata/')
-//
-//            var userdataJson = JSON.parse(data);
-//
-//            var groupsList = userdataJson.groups;
-
-//            var groupsList = ['group1', 'group2', 'group3'];
-
-//            alert(groupsList);
-//            groupsList.unshift("", "Lalala");
-
-//            alert(groupsList);
-
-//            return groupsList;
-
-//            $scope.groups = groupsList;
-//        }()
-
-$scope.group_test = ["A","Something"]
-console.log($scope.group_test);
-
-    $scope.group_vals = [
-       {
-          group: ""
-       },
-       {
-          group: "B"
-       },
-       {
-          group: "C"
-       },
-       {
-          group: "A"
-       }
-       ]
-    
     function setURL(){
         $scope.url = initURL + $scope.buckets[$scope.selectedBucketIndex].name;
     }
@@ -389,8 +353,7 @@ console.log($scope.group_test);
 
      $scope.addBucket = function(){
         var bucketName = document.getElementById('bucketName').value;
-//        var bucketOwner = $scope.selectedGroup.group;
-        var bucketOwner = $scope.selectedGroup;
+        var bucketOwner = schedulerGroupService.data.selectedGroup;
 
         WorkflowCatalogService.addBucket(bucketName, bucketOwner,
             function(success){
