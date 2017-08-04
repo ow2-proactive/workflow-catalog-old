@@ -3,7 +3,8 @@ var wcpRestModule = angular.module('wcp-rest');
 wcpRestModule.factory('schedulerGroupService', function ($http, catalogRestService) {
 
     var defaultNoGroup = "-no group-";
-    var data = { groups : [" "],
+    var groupPrefix = "GROUP:";
+    var data = { groups : [defaultNoGroup],
                    selectedGroup: defaultNoGroup};
 
     function updateGroupList() {
@@ -19,6 +20,7 @@ wcpRestModule.factory('schedulerGroupService', function ($http, catalogRestServi
                 return updateGroupList();
             },
             data: data,
-            defaultNoGroup: defaultNoGroup
+            defaultNoGroup: defaultNoGroup,
+            groupPrefix: groupPrefix
         };
 });

@@ -98,16 +98,14 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             var payload = new FormData();
             payload.append('name', name);
 
-            var DEFAULT_BUCKET_OWNER = "object-catalog"
+            var DEFAULT_BUCKET_OWNER = "public-objects"
 
             if(owner == schedulerGroupService.defaultNoGroup){
                 owner = DEFAULT_BUCKET_OWNER;
             }
-             payload.append('owner', owner);
-//            for new catalog service, where the owner parameter is not required
-//            if(owner != schedulerGroupService.defaultNoGroup){
-//                payload.append('owner', owner);
-//            }
+
+            owner = schedulerGroupService.groupPrefix + owner;
+            payload.append('owner', owner);
 
             var url = localStorage['catalogServiceUrl'] + 'buckets/';
             $http.post(url, payload)
