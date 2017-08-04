@@ -32,7 +32,7 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
     };
 });
 
-nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService) {
+nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService, schedulerGroupService) {
     var buckets = [];
     var queryWorkflowCatalogServiceTimer;
 
@@ -40,23 +40,23 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         if (!workflowsList1 || !workflowsList2){
             return false;
         }
-        
+
         if (workflowsList1.length != workflowsList2.length){
             return false;
         }
-        
+
         for (var index = 0; index < workflowsList1.length; index++){
             var workflow1 = workflowsList1[index];
             var workflow2 = workflowsList2[index];
-            
+
             if (workflow1.commit_time_raw != workflow2.commit_time_raw){
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     function doLogin(userName, userPass) {
         var authData = $.param({'username': userName, 'password': userPass});
         var authConfig = {
@@ -93,6 +93,30 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 callback(false);
             });
     }
+
+    function addBucket(name, owner, callback) {
+            var payload = new FormData();
+            payload.append('name', name);
+
+            var DEFAULT_BUCKET_OWNER = "public-objects"
+
+            if(owner == schedulerGroupService.defaultNoGroup){
+                owner = DEFAULT_BUCKET_OWNER;
+            }
+
+            owner = schedulerGroupService.groupPrefix + owner;
+            payload.append('owner', owner);
+
+            var url = localStorage['catalogServiceUrl'] + 'buckets/';
+            $http.post(url, payload)
+                .success(function (response) {
+                    callback(true);
+                })
+                .error(function (response) {
+                    console.error("Error while querying catalog service on URL " + url + ":", response);
+                    callback(false);
+                });
+        }
 
     function exportWorkflows(bucketIndex, selectedWorkflows) {
         if (selectedWorkflows.length > 0){
@@ -199,7 +223,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 console.error("Error while querying catalog service on URL " + url + ":", response);
             });
     }
-    
+
     function setWorkflowsData(workflows){
         for (var workflowIndex = 0; workflowIndex < workflows.length; workflowIndex++){
             var workflow = workflows[workflowIndex];
@@ -208,23 +232,23 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             workflow.variables = [];
             workflow.project_name = "";
             workflow.icon = "/studio/images/about_115.png";
-            
+
             for (var metadataIndex = 0; metadataIndex < workflow.object_key_values.length; metadataIndex++){
                 var label = workflow.object_key_values[metadataIndex].label;
                 var key = workflow.object_key_values[metadataIndex].key;
                 var value = workflow.object_key_values[metadataIndex].value;
 
-                if (label == "generic_information"){                            
+                if (label == "generic_information"){
                     if (key == "pca.action.icon"){
-                        workflow.icon = value; 
+                        workflow.icon = value;
                     }
                     workflow.gis.push({key: key, value: value});
                 }
-                
+
                 if (label == "variable"){
                     workflow.variables.push({key: key, value: value});
                 }
-                
+
                 if (label == "job_information" && key == "project_name"){
                     workflow.project_name = value;
                 }
@@ -267,6 +291,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         },
         startRegularWorkflowCatalogServiceQuery: function () {
             return startRegularWorkflowCatalogServiceQuery();
+        },
+        addBucket: function (name, owner, callback) {
+            return addBucket(name, owner, callback);
         }
     };
 });
@@ -274,8 +301,11 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
 // ---------- Controllers ----------
 
-nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, $location, SpringDataRestAdapter, WorkflowCatalogService) {
-    
+nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $http, $location, SpringDataRestAdapter, WorkflowCatalogService, schedulerGroupService) {
+
+    $scope.schedulerGroupService = schedulerGroupService;
+    $scope.schedulerGroupService.updateGroupList();
+
     $scope.selectedBucketIndex = 0;
     //The list of workflow names that have been selected
     $scope.selectedWorkflows = [];
@@ -322,7 +352,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             }
         }
     }
-    
+
     $scope.selectRevision = function(index){
         $scope.selectedRevisionIndex = index;
     }
@@ -338,7 +368,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             $scope.lastSelectedWorkflowRevisions = revisions;
         });
     }
-    
+
     function selectBucket(index){
         if (index >= 0 && index < $scope.buckets.length){
             if (index != $scope.selectedBucketIndex){
@@ -350,7 +380,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                 if (!WorkflowCatalogService.compareWorkflowsList($scope.workflows, workflows)){
                     $scope.workflows = workflows;
                     updateLastSelectedWorkflow();
-    
+
                     WorkflowCatalogService.setWorkflowsData(workflows);
                     
                     if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
@@ -400,7 +430,20 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.exportSelectedWorkflows = function(){
         WorkflowCatalogService.exportWorkflows($scope.selectedBucketIndex, $scope.selectedWorkflows);
     }
-    
+
+     $scope.addBucket = function(){
+        var bucketName = document.getElementById('bucketName').value;
+        var bucketOwner = schedulerGroupService.data.selectedGroup;
+
+        WorkflowCatalogService.addBucket(bucketName, bucketOwner,
+            function(success){
+                if (!success){
+                    console.log("Error adding the new bucket", bucketName);
+                }
+            }
+        );
+     }
+
     $scope.uploadArchiveOfWorkflows = function(){
         var file = document.getElementById('zipArchiveInput').files[0];
         WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
@@ -410,7 +453,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         var selectedRevision = $scope.lastSelectedWorkflowRevisions[$scope.selectedRevisionIndex];
         WorkflowCatalogService.restoreRevision($scope.selectedBucketIndex, selectedRevision.name, selectedRevision.commit_time_raw);
     }
-    
+
     function updateBucketWorkflows(){
         selectBucket($scope.selectedBucketIndex);
     }
