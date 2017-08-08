@@ -102,11 +102,9 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             payload.append('name', name);
 
             if(owner != schedulerGroupService.defaultNoGroup){
+                owner = schedulerGroupService.groupPrefix + owner;
                 payload.append('owner', owner);
             }
-
-            owner = schedulerGroupService.groupPrefix + owner;
-            payload.append('owner', owner);
 
             var url = localStorage['catalogServiceUrl'] + 'buckets/';
             $http.post(url, payload, { headers: headers } )
