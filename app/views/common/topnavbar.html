@@ -10,7 +10,7 @@
     </nav>
 </div>
 <div class="row border-bottom">
-    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0; padding-right: 25px">
+    <nav class="navbar navbar-static-top white-bg" role="navigation" style="margin-bottom: 0">
 
         <ul class="nav navbar-nav navbar-right">
             <li style="padding-right: 12px; padding-bottom: 6px">
@@ -26,6 +26,20 @@
             <li style="padding-right: 0px; padding-bottom: 6px">
                 <div>
                     <a class="btn btn-small btn-default" href="/rm" target="_blank" style="color:#333;border-color: #ccc"><img src="styles/patterns/rm_30.png" style="height:25px;padding-right:10px">Resource Manager</a>
+                </div>
+            </li>
+
+            <li style="padding-right: 0px; padding-bottom: 6px">
+                <div>
+                    <a class="btn" href="/notification-portal" target="_blank" style="color:#333"><img src="styles/patterns/notification_30.png" style="height:25px"></a>
+                </div>
+            </li>
+
+            <li style="height: 38px;margin: 0 5px; border-right: 1px solid #777;border-left:  1px solid #f2f2f2;"></li>
+
+            <li style ="padding-bottom: 6px;padding-right: 25px">
+                <div ng-controller="logoutController">
+                    <a ng-click="logout()" class="btn btn-small btn-default" style="color:#333;border-color: #ccc">Logout <b> {{main.userName}}</b> <img src="styles/patterns/logout_30.png" style="height:25px;  padding-left: 7px"></a>
                 </div>
             </li>
 
