@@ -101,10 +101,8 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             var payload = new FormData();
             payload.append('name', name);
 
-            var DEFAULT_BUCKET_OWNER = "public-objects"
-
-            if(owner == schedulerGroupService.defaultNoGroup){
-                owner = DEFAULT_BUCKET_OWNER;
+            if(owner != schedulerGroupService.defaultNoGroup){
+                payload.append('owner', owner);
             }
 
             owner = schedulerGroupService.groupPrefix + owner;
