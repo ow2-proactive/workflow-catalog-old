@@ -84,7 +84,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         encodedName = unescape(encodeURIComponent(name));
 
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + encodedName + "/";
-        $http.delete(url)
+         $http.delete(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 callback(true);
             })
@@ -151,7 +151,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             payload.append('commitMessage', "Upload from ZIP archive");
             var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources';
             
-            $http.post(url, payload)
+            $http.post(url, payload, { headers: { 'sessionID': getSessionId() } })
                 .error(function (response) {
                     console.error("Error while querying catalog service on URL " + url + ":", response);
                 });
@@ -172,7 +172,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         }
 
         var url = localStorage['catalogServiceUrl'] + 'buckets/?kind=workflow';
-        $http.get(url)
+        $http.get(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 buckets = response;
                 $rootScope.$broadcast('event:WorkflowCatalogService');
@@ -190,7 +190,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     function queryWorkflows(bucketIndex, callback) {
         var bucketId = buckets[bucketIndex].id;
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/?kind=workflow';
-        $http.get(url)
+        $http.get(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 callback(response);
             })
@@ -202,7 +202,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     function queryWorkflowRevisions(bucketIndex, workflowName, callback) {
         var bucketId = buckets[bucketIndex].id;
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/revisions';
-        $http.get(url)
+        $http.get(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 callback(response);
             })
@@ -214,7 +214,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     function restoreRevision(bucketIndex, workflowName, revisionCommitTime) {
         var bucketId = buckets[bucketIndex].id;
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/?commitTime=' + revisionCommitTime;
-        $http.put(url)
+        $http.put(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 console.log("Revision successfully restored");
             })
