@@ -42,7 +42,7 @@ import javax.persistence.Table;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "WORKFLOW_KEY_VALUE", indexes = { @Index(columnList = "KEY"), @Index(columnList = "VALUE") })
+@Table(name = "WORKFLOW_KEY_VALUE", indexes = { @Index(columnList = "PA_KEY"), @Index(columnList = "PA_VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class KeyValue {
 
@@ -51,10 +51,10 @@ public abstract class KeyValue {
     @Column(name = "ID")
     protected Long id;
 
-    @Column(name = "KEY", nullable = false)
+    @Column(name = "PA_KEY", nullable = false)
     protected String key;
 
-    @Column(name = "VALUE", nullable = false)
+    @Column(name = "PA_VALUE", nullable = false)
     protected String value;
 
     @ManyToOne(cascade = CascadeType.ALL)
