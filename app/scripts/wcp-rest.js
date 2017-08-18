@@ -133,7 +133,38 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
             }
     
             var path = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources?name=' + names;
-            $window.location.assign(path);
+            $http({
+                    method: 'GET',
+                    url: path,
+                    headers: { 'sessionID': getSessionId() },
+                    responseType: 'arraybuffer'
+                })
+            .success(function (data, status, headers) {
+                console.log("Success querying catalog service on URL " + path + ", status:", status);
+
+                var filename = 'Catalog_archive.zip';
+                var contentType = 'application/zip';
+
+                var linkElement = document.createElement('a');
+                try {
+                    var blob = new Blob([data], { type: contentType });
+                    var url = window.URL.createObjectURL(blob);
+
+                    linkElement.setAttribute('href', url);
+                    linkElement.setAttribute("download", filename);
+
+                    var clickEvent = new MouseEvent("click", {
+                        "view": window,
+                        "bubbles": true,
+                        "cancelable": false
+                    });
+                    linkElement.dispatchEvent(clickEvent);
+                } catch (ex) {
+                    console.log(ex);
+                }
+            }).error(function (data) {
+                console.error("Error while querying catalog service on URL " + path + ", error:", status);
+            });
         }
     }
 
@@ -142,7 +173,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         var reader = new FileReader();
         reader.onloadend = function (e) {
             var data = e.target.result;
-            var blob = new Blob([file], { type: "application/zip" });
+            var blob = new Blob([file], { type: "application/octet-stream" });
             
             var payload = new FormData();
             payload.append('file', blob);
