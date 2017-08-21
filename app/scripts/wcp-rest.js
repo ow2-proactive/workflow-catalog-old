@@ -244,8 +244,13 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
     function restoreRevision(bucketIndex, workflowName, revisionCommitTime) {
         var bucketId = buckets[bucketIndex].id;
-        var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/?commitTime=' + revisionCommitTime;
-        $http.put(url, { headers: { 'sessionID': getSessionId() } })
+        var urlPath = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/' + workflowName + '/?commitTime=' + revisionCommitTime;
+        $http({
+            method: 'PUT',
+            url: urlPath,
+            headers: { 'sessionID': getSessionId() }
+        })
+//        $http.put(url, { headers: { 'sessionID': getSessionId() } })
             .success(function (response) {
                 console.log("Revision successfully restored");
             })
