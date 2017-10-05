@@ -121,17 +121,17 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         if (selectedWorkflows.length > 0){
             var bucketId = buckets[bucketIndex].id;
             var names = "";
-            
+
             for (var index = 0; index < selectedWorkflows.length; index++){
                 if (index > 0){
                     names += ",";
                 }
-                
+
                 var currentSelectedWorkflowName = selectedWorkflows[index];
                 var encodedName = unescape(encodeURIComponent(currentSelectedWorkflowName));
                 names += encodedName;
             }
-    
+
             var path = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources?name=' + names;
             $http({
                     method: 'GET',
@@ -168,20 +168,20 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
         }
     }
 
-    function importArchiveOfWorkflows(bucketIndex, file) {  
-        var bucketId = buckets[bucketIndex].id;      
+    function importArchiveOfWorkflows(bucketIndex, file) {
+        var bucketId = buckets[bucketIndex].id;
         var reader = new FileReader();
         reader.onloadend = function (e) {
             var data = e.target.result;
             var blob = new Blob([file], { type: "application/octet-stream" });
-            
+
             var payload = new FormData();
             payload.append('file', blob);
             payload.append('contentType', "application/xml");
             payload.append('kind', "workflow");
             payload.append('commitMessage', "Upload from ZIP archive");
             var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources';
-            
+
             $http.post(url, payload, { headers: { 'sessionID': getSessionId() } })
                 .error(function (response) {
                     console.error("Error while querying catalog service on URL " + url + ":", response);
@@ -191,16 +191,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
     }
 
     function queryWorkflowCatalogService() {
-        if (getSessionId() == undefined) {
-            if (queryWorkflowCatalogServiceTimer != undefined) {
-                console.log("Stopping regular query to catalog service");
-                $rootScope.$interval.cancel(queryWorkflowCatalogServiceTimer);
-                queryWorkflowCatalogServiceTimer = undefined;
-            }
-
-            $state.go('login');
-            return;
-        }
+        if (getSessionId() != undefined) {
 
         var url = localStorage['catalogServiceUrl'] + 'buckets/?kind=workflow';
         $http.get(url, { headers: { 'sessionID': getSessionId() } })
@@ -212,13 +203,27 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 console.error("Error while querying catalog service on URL " + url + ":", response);
             });
     }
+    }
+
+
 
     function startRegularWorkflowCatalogServiceQuery() {
-        queryWorkflowCatalogServiceTimer =
-            $rootScope.$interval(queryWorkflowCatalogService, localStorage['workflowCatalogPortalQueryPeriod']);
+
+      queryWorkflowCatalogService();
+
+      queryWorkflowCatalogServiceTimer = $rootScope.$interval(queryWorkflowCatalogService, localStorage['workflowCatalogPortalQueryPeriod']);
+
+            $rootScope.$on('event:StopRefreshing', function () {
+                        console.log("event:StopRefreshing for startRegularWorkflowCatalogServiceQuery received");
+                        if (angular.isDefined(queryWorkflowCatalogServiceTimer)) {
+                            $interval.cancel(queryWorkflowCatalogServiceTimer);
+                            queryWorkflowCatalogServiceTimer = undefined;
+                        }
+                    });
     }
 
     function queryWorkflows(bucketIndex, callback) {
+if (getSessionId() != undefined) {
         var bucketId = buckets[bucketIndex].id;
         var url = localStorage['catalogServiceUrl'] + 'buckets/' + bucketId + '/resources/?kind=workflow';
         $http.get(url, { headers: { 'sessionID': getSessionId() } })
@@ -229,6 +234,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
                 console.error("Error while querying catalog service on URL " + url + ":", response);
             });
     }
+  }
 
     function queryWorkflowRevisions(bucketIndex, workflowName, callback) {
         var bucketId = buckets[bucketIndex].id;
@@ -350,7 +356,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.lastSelectedWorkflowRevisions = [];
     // lastSelectedWorkflow is the last workflow that has been selected (so the displayed one on the right)
     $scope.lastSelectedWorkflow = null;
-    
+
     $scope.selectWorkflow = function(workflowName, event){
         //Check whether the ctrl button is pressed
         if (event && (event.ctrlKey || event.metaKey)){
@@ -370,7 +376,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
         updateLastSelectedWorkflow();
     }
-    
+
     // This function updates the var lastSelectedWorkflow which is the displayed workflow on the right panel
     function updateLastSelectedWorkflow(){
         var length = $scope.selectedWorkflows.length;
@@ -391,11 +397,11 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
     $scope.selectRevision = function(index){
         $scope.selectedRevisionIndex = index;
     }
-    
+
     $scope.selectBucket = function(index){
         selectBucket(index);
     }
-    
+
     $scope.updateRevisionsList = function(){
         $scope.lastSelectedWorkflowRevisions = [];
         var selectedWorkflowName = $scope.lastSelectedWorkflow.name;
@@ -410,14 +416,12 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
                 $scope.selectedWorkflows = [];
                 $scope.selectedBucketIndex = index;
             }
-            
             WorkflowCatalogService.getWorkflows(index, function(workflows){
                 if (!WorkflowCatalogService.compareWorkflowsList($scope.workflows, workflows)){
                     $scope.workflows = workflows;
                     updateLastSelectedWorkflow();
 
                     WorkflowCatalogService.setWorkflowsData(workflows);
-                    
                     if (workflows.length > 0 && $scope.selectedWorkflows.length == 0){
                         $scope.selectWorkflow(workflows[0].name);
                     }
@@ -425,14 +429,14 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             });
         }
     }
-    
+
     $scope.getPanelStatus = function(workflow){
         if (getSelectedWorkflowIndex(workflow.name) != -1)
             return 'panel-selected';
         else
             return 'panel-default';
     }
-    
+
     function getSelectedWorkflowIndex(workflowName){
         for (var index = 0; index < $scope.selectedWorkflows.length; index++){
             if ($scope.selectedWorkflows[index] == workflowName){
@@ -441,7 +445,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         }
         return -1;
     }
-    
+
     $scope.deleteSelectedWorkflows = function(){
         var workflowsToDelete = $scope.selectedWorkflows;
         $scope.selectedWorkflows = [];
@@ -459,9 +463,9 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
             );
         }
         $scope.selectedWorkflows = notDeletedWorkflows;
-        updateBucketWorkflows();        
+        updateBucketWorkflows();
     }
-    
+
     $scope.exportSelectedWorkflows = function(){
         WorkflowCatalogService.exportWorkflows($scope.selectedBucketIndex, $scope.selectedWorkflows);
     }
@@ -483,7 +487,7 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         var file = document.getElementById('zipArchiveInput').files[0];
         WorkflowCatalogService.importArchiveOfWorkflows($scope.selectedBucketIndex, file);
     }
-    
+
     $scope.restoreRevision = function(){
         var selectedRevision = $scope.lastSelectedWorkflowRevisions[$scope.selectedRevisionIndex];
         WorkflowCatalogService.restoreRevision($scope.selectedBucketIndex, selectedRevision.name, selectedRevision.commit_time_raw);
@@ -493,11 +497,10 @@ nsCtrl.controller('WorkflowCatalogController', function ($scope, $rootScope, $ht
         selectBucket($scope.selectedBucketIndex);
     }
 
-    $rootScope.$on('event:WorkflowCatalogService', function () {
-        $scope.buckets = WorkflowCatalogService.getBuckets();
-        updateBucketWorkflows();
+    $scope.$on('event:WorkflowCatalogService', function () {
+          $scope.buckets = WorkflowCatalogService.getBuckets();
+          updateBucketWorkflows();
     });
-   
 });
 
 nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogService) {
@@ -516,11 +519,7 @@ nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogSe
                 if (sessionid != undefined) {
                     console.log('Authentication succeeded');
 
-                    // Redirect to the main page
                     $state.go('index.workflow_catalog');
-
-                    // Start workflow catalog refreshing services
-                    WorkflowCatalogService.startRegularWorkflowCatalogServiceQuery();
 
                 }
             })
@@ -533,9 +532,6 @@ nsCtrl.controller('loginController', function ($scope, $state, WorkflowCatalogSe
 nsCtrl.controller('logoutController', function ($rootScope, $scope, $state) {
     $scope.logout = function () {
         localStorage.removeItem('pa.session');
-
-        // Stop all workflow catalog refreshing services
-        $rootScope.$broadcast('event:StopRefreshing');
 
         $state.go('login');
     };

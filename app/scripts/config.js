@@ -14,15 +14,24 @@ function config($stateProvider, $urlRouterProvider) {
         .state('login', {
             url: '/login',
             templateUrl: 'views/login.html',
+            authenticate: false
         })
         .state('index', {
             abstract: true,
             url: '/index',
-            templateUrl: 'views/common/content.html'
+            templateUrl: 'views/common/content.html',
+            authenticate: true
         })
         .state('index.workflow_catalog', {
             url: '/workflow_catalog',
-            templateUrl: 'views/workflow_catalog.html'
+            templateUrl: 'views/workflow_catalog.html',
+            authenticate: true,
+            onEnter : function (WorkflowCatalogService){
+            WorkflowCatalogService.startRegularWorkflowCatalogServiceQuery();
+            },
+            onExit: function($rootScope){
+            $rootScope.$broadcast('event:StopRefreshing');
+            }
         });
 }
 
@@ -54,7 +63,6 @@ angular
             if (localStorage['pa.session'] == undefined) {
                 $state.go('login');
             } else {
-            	WorkflowCatalogService.startRegularWorkflowCatalogServiceQuery();
                 $state.go('index.workflow_catalog');
             }
         });
