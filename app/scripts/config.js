@@ -61,7 +61,6 @@ angular
         $rootScope.$on('$locationChangeStart', function (event, next, current) {
             event.preventDefault();
             if (localStorage['pa.session'] == undefined) {
-              //$rootScope.$broadcast('event:StopRefreshing');
                 $state.go('login');
             } else {
                 $state.go('index.workflow_catalog');
