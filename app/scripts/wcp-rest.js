@@ -34,7 +34,7 @@ nsCtrl.factory('LoadingPropertiesService', function ($http) {
 
 nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope, $state, $window, LoadingPropertiesService, schedulerGroupService) {
     var buckets = [];
-  //  var queryWorkflowCatalogServiceTimer;
+    var queryWorkflowCatalogServiceTimer;
 
     function compareWorkflowsList(workflowsList1, workflowsList2){
         if (!workflowsList1 || !workflowsList2){
@@ -211,7 +211,7 @@ nsCtrl.factory('WorkflowCatalogService', function ($http, $interval, $rootScope,
 
       queryWorkflowCatalogService();
 
-      var queryWorkflowCatalogServiceTimer = $rootScope.$interval(queryWorkflowCatalogService, localStorage['workflowCatalogPortalQueryPeriod']);
+      queryWorkflowCatalogServiceTimer = $rootScope.$interval(queryWorkflowCatalogService, localStorage['workflowCatalogPortalQueryPeriod']);
 
             $rootScope.$on('event:StopRefreshing', function () {
                         console.log("event:StopRefreshing for startRegularWorkflowCatalogServiceQuery received");
