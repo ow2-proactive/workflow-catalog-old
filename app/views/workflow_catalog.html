@@ -1,0 +1,245 @@
+<div ng-controller="WorkflowCatalogController">
+         
+    <div class="row">
+        <div class="ibox float-e-margins">
+            <div class="ibox-heading" style="height: 50px">
+                <div id="left" class="m-b col-md-6">
+                    <h1>Workflow Catalog</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+           
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="col-sm-1 col-lg-1 col-md-1">
+                <div class="ibox float-e-margins">
+                    <button class="fa fa-plus" data-toggle="modal" data-target="#addBucketModal"></button>
+                </div>
+            </div>
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Buckets</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr ng-repeat="bucket in buckets"
+                                class="clickable-element"
+                                ng-class="($index==selectedBucketIndex)?'active':''"
+                                ng-click="selectBucket($index)">
+                                <td>{{bucket.name}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                 
+        </div>
+        <div class="col-lg-6 col-md-12 col-sm-12">
+		    <div>
+	            <div class="col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-trash" data-toggle="modal" data-target="#confirmDeleteModal"></button>
+	                </div>
+	            </div>
+	            <div class="col-lg-offset-1 col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-download"
+	                        ng-click="exportSelectedWorkflows();"></button>
+	                </div>
+	            </div>
+	            <div class="col-lg-offset-1 col-sm-1 col-lg-1 col-md-1">
+	                <div class="ibox float-e-margins">
+	                    <button class="fa fa-upload" data-toggle="modal" data-target="#zipUploadModal"></button>
+	                </div>
+	            </div>
+		    </div>
+            <div class="ibox float-e-margins">
+                <div class="ibox-content" style="overflow: auto; height: 60vh;">
+                    <div ng-repeat="groupedWorkflows in workflows | groupBy: 'project_name'| toArray:true | orderBy:'$key'">
+                        <div class="row">
+	                        <h3>{{groupedWorkflows.$key}}</h3>
+		                    <div class="col-sm-2 col-md-2 col-lg-2" ng-repeat="workflow in groupedWorkflows">
+		                        <div class="panel clickable-element" ng-class="getPanelStatus(workflow)"
+		                            ng-click="selectWorkflow(workflow.name, $event)">
+		                            <div class="panel-heading" style="height: 60px; font-size: 10px; word-wrap: break-word;">{{workflow.name}}</div>
+		                            <div class="panel-body" style="height: 70px;">
+		                                <img ng-src="{{workflow.icon}}"
+		                                    alt="{{workflow.name}}"
+		                                    style="max-width: 100%; max-height: 100%;" />
+		                            </div>
+		                        </div>
+		                    </div>
+	                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <div class="panel">
+                        <div class="panel-heading">
+                            <h2>Description</h2>
+                        </div>
+                        <div class="panel-body" ng-if="lastSelectedWorkflow != null">
+                            <p>
+                                <b>Name:</b> {{lastSelectedWorkflow.name}}<br>
+                                <b>Project Name:</b> {{lastSelectedWorkflow.project_name}}<br>
+                                <b>Latest Update:</b><br>
+                                <table style="width:100%"><tr>
+                                    <td>{{lastSelectedWorkflow.commit_time}}</td>
+	                                <td><span data-toggle="modal" data-target="#listRevisionsModal" ng-click="updateRevisionsList()">
+	                                    <button class="fa fa-clock-o" data-toggle="tooltip" title="List revisions"></button>
+	                                </span></td>
+	                            </tr></table>
+                            </p>
+                            <p>
+                                <b>Generic Info: </b>
+	                            <table style="border-collapse: separate; border-spacing: 10px;"
+	                                ng-if="lastSelectedWorkflow.gis.length > 0">
+	                                <tr ng-repeat="gi in lastSelectedWorkflow.gis">
+	                                    <td style="vertical-align: top;">{{gi.key}}</td>
+	                                    <td style="vertical-align: top;">{{gi.value}}</td>
+	                                </tr>
+	                            </table>
+                            </p>
+                            <p>
+                                <b>Default Variables: </b>
+	                            <table style="border-collapse: separate; border-spacing: 10px;"
+	                                ng-if="lastSelectedWorkflow.variables.length > 0">
+	                                <tr ng-repeat="variable in lastSelectedWorkflow.variables">
+	                                    <td class="align-text-top" style="vertical-align: top;">{{variable.key}}</td>
+	                                    <td style="vertical-align: top;">{{variable.value}}</td>
+	                                </tr>
+	                            </table>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="zipUploadModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">Upload a ZIP archive of workflows</p>
+                </div>
+                <div class="modal-body">
+                    <p>Please choose a ZIP archive containing workflows.</p>
+                    <input type="file" id="zipArchiveInput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="uploadArchiveOfWorkflows()">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmDeleteModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">Delete the selected Workflows from current Bucket</p>
+                </div>
+                <div class="modal-body">
+                    <p>Warning! You are going to delete the selected Workflows. This step can not be reversed. </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="deleteSelectedWorkflows()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="listRevisionsModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">List the revisions of {{lastSelectedWorkflow.name}}</p>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr ng-repeat="revision in lastSelectedWorkflowRevisions"
+                                ng-class="($index==selectedRevisionIndex)?'active':''"
+                                ng-click="selectRevision($index)">
+                                <td>{{revision.commit_time}}</td>
+                                <td>{{revision.commit_message}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" data-toggle="modal" data-target="#confirmRestoreModal">Restore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmRestoreModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <p class="modal-title">Restore the selected revision</p>
+                </div>
+                <div class="modal-body">
+                    <p>Warning! You are going to restore the selected Revision. This step can not be reversed. </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="restoreRevision()">Restore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addBucketModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Create the new bucket</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Please fill the form to create a new bucket</p>
+
+                    <table class="fullwidth">
+                        <tr>
+                            <td><label class="control-label ng-binding">Bucket Name: </label></td>
+                            <td><input class="form-control" type="text" id="bucketName"></label></td>
+                        </tr>
+                        <tr>
+                            <td><label class="control-label ng-binding">Associated User Group: </label></td>
+                            <td><select class="form-control" ng-model='schedulerGroupService.data.selectedGroup' ng-options='val for val in schedulerGroupService.data.groups'></select><td>
+                        </tr>
+                    </table>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" aria-hidden="true" ng-click="addBucket()">Add bucket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

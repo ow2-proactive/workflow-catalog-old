@@ -1,231 +1,130 @@
+apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'com.moowork.grunt'
+apply plugin: 'com.moowork.node'
+
+// Configure the maven repository deployment
+install {
+    repositories.mavenInstaller {
+        // Set the version
+        pom.version = workflowCatalogPortalVersion
+        // Set the group/namespace for the maven repository deployment.
+        pom.groupId = 'org.ow2.proactive'
+        // Give the artifact a 'base name' (The version is added to the 'base name')
+        pom.artifactId = 'workflow-catalog-portal'
+    }
+}
+
 buildscript {
     repositories {
-        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url "http://repository.activeeon.com/content/groups/proactive/"
+        }
     }
-
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.3.2.RELEASE'
+        classpath 'com.moowork.gradle:gradle-grunt-plugin:0.12'
+        classpath 'com.moowork.gradle:gradle-node-plugin:0.12'
     }
 }
 
-plugins {
-    id 'antlr'
-    id 'com.github.kt3k.coveralls' version '2.5.0'
-    id 'eclipse'
-    id 'idea'
-    id 'jacoco'
-    id 'java'
-    id 'maven'
-    id 'war'
+node {
+    // Version of node to use.
+    version = '4.4.4'
+
+    // Version of npm to use.
+    // npmVersion = '3.8.6'
+
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'https://nodejs.org/dist'
+
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = true
+
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/nodejs")
+
+    // Set the work directory where node_modules should be located
+    nodeModulesDir = file("${project.projectDir}")
 }
 
-apply plugin: 'spring-boot'
+grunt {
+    // Set the directory where Gruntfile.js should be found
+    workDir = file("${project.projectDir}")
 
-group = 'org.ow2.proactive'
-version = version
+    // Whether colors should output on the terminal
+    colors = true
 
-bootRepackage {
-    enabled = true
-}
-
-configurations {
-    // The following module is excluded to avoid clashes when embedded inside the ProActive Scheduler
-    all*.exclude module: 'spring-boot-starter-logging'
-
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
-
-    querydsl
-}
-
-compileJava {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-}
-
-coveralls {
-    sourceDirs = allprojects.sourceSets.main.allSource.srcDirs.flatten()
-    jacocoReportPath = "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
-}
-
-ext {
-    generatedSrcDir = "$projectDir/src/generated/java"
-}
-
-generateGrammarSource {
-    arguments += ["-visitor", "-long-messages"]
-    maxHeapSize = "64m"
-    outputDirectory = file("$generatedSrcDir/org/ow2/proactive/workflow_catalog/rest/query/parser")
+    // Whether output from Grunt should be buffered - useful when running tasks in parallel
+    bufferOutput = false
 }
 
 repositories {
-    jcenter()
+    mavenLocal()
 }
 
-sourceSets {
-    generated {
-        java {
-            srcDirs += generatedSrcDir
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            snapshotRepository(url: "http://repository.activeeon.com/content/repositories/snapshots/") {
+                authentication(userName: "${System.getProperty('nexusUsername')}",
+                        password: "${System.getProperty('nexusPassword')}")
+            }
+            repository(url: "http://repository.activeeon.com/content/repositories/releases/") {
+                authentication(userName: "${System.getProperty('nexusUsername')}",
+                        password: "${System.getProperty('nexusPassword')}")
+            }
         }
     }
-
-    main {
-        java {
-            srcDirs += generatedSrcDir
-        }
-    }
-
-    integrationTest {
-        java.srcDir file('src/integration-test/java')
-        resources.srcDir file('src/integration-test/resources')
-
-        compileClasspath = sourceSets.main.output + configurations.integrationTestCompile
-        runtimeClasspath = output + compileClasspath + configurations.integrationTestRuntime
-    }
 }
 
-springBoot {
-    mainClass = 'org.ow2.proactive.workflow_catalog.rest.Application'
+task packageDist(type: Zip) {
+    from 'dist'
+    dependsOn grunt_build
 }
 
-war {
-    baseName = "workflow-catalog"
-    version = version
+task packageDev(type: Zip) {
+    from 'app'
+    classifier 'dev'
 }
 
-dependencies {
-    antlr 'org.antlr:antlr4:4.5.2'
-
-    compile 'commons-fileupload:commons-fileupload:1.3.1'
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.1'
-    compile 'com.mysema.querydsl:querydsl-jpa:3.7.1'
-    querydsl 'com.mysema.querydsl:querydsl-apt:3.7.1'
-
-    compile 'org.springframework.boot:spring-boot-starter-data-jpa:1.3.2.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-log4j2:1.3.2.RELEASE'
-    compile('org.springframework.boot:spring-boot-starter-web:1.3.2.RELEASE') {
-        exclude module: 'spring-boot-starter-tomcat'
-        exclude module: 'spring-boot-starter-validation'
-    }
-    compile 'org.springframework.hateoas:spring-hateoas:0.19.0.RELEASE'
-
-    providedCompile 'org.springframework.boot:spring-boot-starter-tomcat:1.3.2.RELEASE'
-
-    /*
-     There is an open issue (https://sourceforge.net/p/hsqldb/bugs/1406/) that forces us
-     to stay on version < 2.3.2 until it is fixed
-     Unique constraints are not translated into the proper exception type
-      */
-    providedRuntime 'org.hsqldb:hsqldb:2.3.1'
-
-    compile 'io.springfox:springfox-spring-web:2.3.1'
-    compile 'io.springfox:springfox-swagger2:2.3.1'
-    compile 'io.springfox:springfox-swagger-ui:2.3.1'
-
-    testCompile 'com.google.truth:truth:0.28'
-    testCompile 'junit:junit:4.12'
-    testCompile 'nl.jqno.equalsverifier:equalsverifier:1.7.7'
-    testCompile 'org.mockito:mockito-core:1.10.19'
-
-    integrationTestCompile 'com.google.code.gson:gson:2.5'
-    integrationTestCompile 'com.jayway.restassured:rest-assured:2.8.0'
-    integrationTestCompile 'org.springframework.boot:spring-boot-starter-test:1.3.2.RELEASE'
+task bowerInstall(type: NodeTask) {
+    script = file('node_modules/bower/bin/bower')
+    args = ["--config.storage.cache=${gradle.getGradleUserHomeDir()}/caches/bower/cache",
+            "--config.storage.packages=${gradle.getGradleUserHomeDir()}/caches/bower/packages",
+            "--config.storage.registry=${gradle.getGradleUserHomeDir()}/caches/bower/registry",
+            '--allow-root',
+            'install']
+    inputs.files file('bower.json')
+    outputs.files file('bower_components')
+    dependsOn npmInstall
 }
 
-test {
-    jacoco {
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-    }
+
+// makes sure on each build that bower downloaded the dependencies
+grunt_build.dependsOn 'bowerInstall'
+
+// makes sure on each build that grunt is installed
+grunt_build.dependsOn 'installGrunt'
+
+// processes your package.json before running grunt build
+grunt_build.dependsOn 'npmInstall'
+
+// runs "grunt build" as part of your gradle build
+build.dependsOn grunt_build
+
+// delete dist folder with clean
+clean{
+    delete "${project.projectDir}/dist"
+    delete "${project.projectDir}/.tmp"
+    delete "${project.projectDir}/build"
+    delete "${project.projectDir}/node_modules"
+    delete "${project.projectDir}/bower_components"
 }
 
-task integrationTest(type: Test) {
-    testClassesDir = sourceSets.integrationTest.output.classesDir
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    classpath += sourceSets.test.runtimeClasspath
-
-    jacoco {
-        destinationFile = file("$buildDir/jacoco/jacocoIntegrationTest.exec")
-    }
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-}
-
-task generateQueryDSL(type: JavaCompile, group: 'build', description: 'Generates the QueryDSL query types') {
-    // place the output of the QueryDSL predicate processor in a new location.
-    def outputDir = file("$generatedSrcDir")
-    outputs.dir outputDir
-    doFirst {
-        // make sure the directory exists.
-        outputDir.exists() || outputDir.mkdirs()
-    }
-
-    source = sourceSets.main.java
-    classpath = configurations.compile + configurations.querydsl
-
-    options.compilerArgs = [
-            "-proc:only",
-            "-processor", "com.mysema.query.apt.jpa.JPAAnnotationProcessor"
-    ]
-
-    // generated code goes into the generated code directory.
-    destinationDir = outputDir
-
-    dependencyCacheDir = compileJava.dependencyCacheDir
-
-}
-
-compileJava.dependsOn generateQueryDSL
-compileJava.source generateQueryDSL.outputs.files, sourceSets.main.java
-
-jacocoTestReport {
-    executionData test, integrationTest
-
-    sourceSets project.sourceSets.main
-
-    reports {
-        html.enabled = true
-        xml.enabled = true
-    }
-
-    // remove auto-generated classes from report
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it, excludes: [
-                    'org/ow2/proactive/workflow_catalog/rest/entity/Q*',
-                    'org/ow2/proactive/workflow_catalog/rest/query/parser/*']);
-        })
-    }
-}
-
-clean {
-    sourceSets.generated.java.srcDirs.each {
-       srcDir -> delete srcDir
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
-}
-
-check.dependsOn integrationTest
-
-jacocoTestReport.dependsOn check
-tasks.coveralls.dependsOn jacocoTestReport
-
-tasks.withType(Test) {
-    reports.html.destination = file("${reporting.baseDir}/${name}")
-}
-
-idea {
-    module {
-        testSourceDirs += file('src/integration-test/java')
-        testSourceDirs += file('src/integration-test/resources')
-
-        scopes.TEST.plus += [
-                configurations.integrationTestCompile,
-                configurations.integrationTestRuntime
-        ]
-    }
+artifacts {
+    archives packageDist, packageDev
 }
