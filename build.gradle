@@ -27,6 +27,7 @@ buildscript {
     dependencies {
         classpath 'com.moowork.gradle:gradle-grunt-plugin:0.12'
         classpath 'com.moowork.gradle:gradle-node-plugin:0.12'
+        classpath "org.ow2.proactive:replace-files-gradle-plugin:0.1.5"
     }
 }
 
@@ -101,6 +102,17 @@ task bowerInstall(type: NodeTask) {
     inputs.files file('bower.json')
     outputs.files file('bower_components')
     dependsOn npmInstall
+}
+
+if (project.hasProperty('customizableSquaredLogoLocation')
+        && project.hasProperty('customizableImages')) {
+    task replaceCustomizableImage(type: ReplaceFilesTask) {
+        newFileUrl = project.customizableSquaredLogoLocation
+        commaSeparatedListFilesToOverwrite = project.customizableImages
+    }
+
+    grunt_build.finalizedBy(replaceCustomizableImage)
+    packageDist.dependsOn replaceCustomizableImage
 }
 
 
